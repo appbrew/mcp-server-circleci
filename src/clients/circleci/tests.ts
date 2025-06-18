@@ -1,7 +1,7 @@
-import { Test } from '../schemas.js';
-import { HTTPClient } from './httpClient.js';
-import { defaultPaginationOptions } from './index.js';
 import { z } from 'zod';
+import { Test } from '../schemas.js';
+import type { HTTPClient } from './httpClient.js';
+import { defaultPaginationOptions } from './index.js';
 
 const TestResponseSchema = z.object({
   items: z.array(Test),
@@ -62,7 +62,7 @@ export class TestsAPI {
       const params = nextPageToken ? { 'page-token': nextPageToken } : {};
       const rawResult = await this.client.get<unknown>(
         `/project/${projectSlug}/${jobNumber}/tests`,
-        params,
+        params
       );
 
       // Validate the response against our TestResponse schema

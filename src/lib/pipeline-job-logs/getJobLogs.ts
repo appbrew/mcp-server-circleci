@@ -1,8 +1,8 @@
 import { getCircleCIPrivateClient } from '../../clients/client.js';
 import { getCircleCIClient } from '../../clients/client.js';
-import { rateLimitedRequests } from '../rateLimitedRequests/index.js';
-import { JobDetails } from '../../clients/schemas.js';
+import type { JobDetails } from '../../clients/schemas.js';
 import outputTextTruncated, { SEPARATOR } from '../outputTextTruncated.js';
+import { rateLimitedRequests } from '../rateLimitedRequests/index.js';
 
 export type GetJobLogsParams = {
   projectSlug: string;
@@ -52,14 +52,15 @@ const getJobLogs = async ({
             console.error(`Job ${jobNumber} not found:`, error);
             // some jobs might not be found, return null in that case
             return null;
-          } else if (error instanceof Error && error.message.includes('429')) {
+          }
+          if (error instanceof Error && error.message.includes('429')) {
             console.error(`Rate limited for job request ${jobNumber}:`, error);
             // some requests might be rate limited, return null in that case
             return null;
           }
           throw error;
         }
-      }),
+      })
     )
   ).filter((job): job is JobDetails => job !== null);
 
@@ -90,14 +91,14 @@ const getJobLogs = async ({
               return null;
             }
           });
-        }),
+        })
       );
 
       return {
         jobName: job.workflows.job_name,
         steps: stepLogs.filter(Boolean), // Remove any null entries
       };
-    }),
+    })
   );
 
   return allLogs;
@@ -122,7 +123,7 @@ export function formatJobLogs(jobStepLogs: JobWithStepLogs[]) {
     };
   }
   const outputText = jobStepLogs
-    .map((log) => `${SEPARATOR}Job: ${log.jobName}\n` + formatSteps(log))
+    .map((log) => `${SEPARATOR}Job: ${log.jobName}\n${formatSteps(log)}`)
     .join('\n');
   return outputTextTruncated(outputText);
 }
@@ -132,9 +133,6 @@ const formatSteps = (jobStepLog: JobWithStepLogs) => {
     return 'No steps found.';
   }
   return jobStepLog.steps
-    .map(
-      (step) =>
-        `Step: ${step?.stepName}\n` + `Logs: ${JSON.stringify(step?.logs)}`,
-    )
+    .map((step) => `Step: ${step?.stepName}\n` + `Logs: ${JSON.stringify(step?.logs)}`)
     .join('\n');
 };

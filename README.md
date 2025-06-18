@@ -4,425 +4,245 @@
 [![CircleCI](https://dl.circleci.com/status-badge/img/gh/CircleCI-Public/mcp-server-circleci/tree/main.svg?style=svg)](https://dl.circleci.com/status-badge/redirect/gh/CircleCI-Public/mcp-server-circleci/tree/main)
 [![npm](https://img.shields.io/npm/v/@circleci/mcp-server-circleci?logo=npm)](https://www.npmjs.com/package/@circleci/mcp-server-circleci)
 
-Model Context Protocol (MCP) is a [new, standardized protocol](https://modelcontextprotocol.io/introduction) for managing context between large language models (LLMs) and external systems. In this repository, we provide an MCP Server for [CircleCI](https://circleci.com).
+Model Context Protocol (MCP) は、大規模言語モデル（LLM）と外部システム間のコンテキスト管理を行うための[新しい標準化されたプロトコル](https://modelcontextprotocol.io/introduction)です。このリポジトリでは、[CircleCI](https://circleci.com)向けのMCP Serverを提供しています。
 
-This lets you use Cursor IDE, Windsurf, Copilot, or any MCP supported Client, to use natural language to accomplish things with CircleCI, e.g.:
+これにより、MCP対応のクライアントを使用して自然言語でCircleCIに関するタスクを実行できます。例：
 
 - `Find the latest failed pipeline on my branch and get logs`
   https://github.com/CircleCI-Public/mcp-server-circleci/wiki#circleci-mcp-server-with-cursor-ide
 
 https://github.com/user-attachments/assets/3c765985-8827-442a-a8dc-5069e01edb74
 
-## Requirements
+## 必要な要件
 
-- CircleCI Personal API Token - you can generate one through the CircleCI. [Learn more](https://circleci.com/docs/managing-api-tokens/) or [click here](https://app.circleci.com/settings/user/tokens) for quick access.
+- CircleCI Personal API Token - CircleCIから生成できます。[詳細はこちら](https://circleci.com/docs/managing-api-tokens/)、または[こちらをクリック](https://app.circleci.com/settings/user/tokens)して直接アクセスしてください。
 
-For NPX installation:
+ローカル開発の場合：
 
-- pnpm package manager - [Learn more](https://pnpm.io/installation)
+- pnpm パッケージマネージャー - [詳細はこちら](https://pnpm.io/installation)
 - Node.js >= v18.0.0
 
-For Docker installation:
+Cloudflare Workers デプロイの場合：
 
-- Docker - [Learn more](https://docs.docker.com/get-docker/)
+- Cloudflare アカウント - [サインアップ](https://dash.cloudflare.com/sign-up)
+- Wrangler CLI - [詳細はこちら](https://developers.cloudflare.com/workers/wrangler/)
 
-## Installation
+## インストール
 
-### Cursor
+### Cloudflare Workers（本番環境推奨）
 
-#### Using NPX
+OAuth認証を使用した本番環境デプロイでは、Cloudflare Workersにサーバーをデプロイできます：
 
-Add the following to your cursor MCP config:
+#### クイックセットアップ
 
+1. **リポジトリのクローンとセットアップ:**
+   ```bash
+   git clone https://github.com/CircleCI-Public/mcp-server-circleci.git
+   cd mcp-server-circleci
+   pnpm install
+   ```
+
+2. **セットアップスクリプトの実行:**
+   ```bash
+   ./scripts/setup-cloudflare.sh
+   ```
+
+3. **環境変数の設定:**
+   `.dev.vars` を編集して設定を行います：
+   ```env
+   ACCESS_CLIENT_ID=your-access-client-id
+   ACCESS_CLIENT_SECRET=your-access-client-secret
+   ACCESS_TOKEN_URL=https://your-domain.cloudflareaccess.com/cdn-cgi/access/token
+   ACCESS_AUTHORIZATION_URL=https://your-domain.cloudflareaccess.com/cdn-cgi/access/authorize
+   ACCESS_JWKS_URL=https://your-domain.cloudflareaccess.com/cdn-cgi/access/certs
+   COOKIE_ENCRYPTION_KEY=your-cookie-encryption-key
+   CIRCLECI_TOKEN=your-circleci-token
+   CIRCLECI_BASE_URL=https://circleci.com
+   ```
+
+4. **開発サーバーの起動:**
+   ```bash
+   pnpm dev
+   ```
+
+5. **本番環境へのデプロイ:**
+   ```bash
+   pnpm deploy
+   ```
+
+#### 手動設定
+
+Cloudflare Workers の手動設定も可能です：
+
+1. **KV名前空間の作成:**
+   ```bash
+   wrangler kv:namespace create "OAUTH_DATA"
+   ```
+
+2. **wrangler.jsonc の更新** - KV名前空間IDを設定
+
+3. **シークレットの設定:**
+   ```bash
+   wrangler secret put ACCESS_CLIENT_ID
+   wrangler secret put ACCESS_CLIENT_SECRET
+   # ... その他のシークレット
+   ```
+
+
+### リモートMCP Serverの使用
+
+Cloudflare Workersにサーバーをデプロイした後、リモートURLを指定して任意のMCPクライアントから接続できます：
+
+**Claude Desktop:**
 ```json
 {
   "mcpServers": {
-    "circleci-mcp-server": {
+    "circleci-remote": {
       "command": "npx",
-      "args": ["-y", "@circleci/mcp-server-circleci"],
+      "args": ["-y", "@modelcontextprotocol/remote"],
       "env": {
-        "CIRCLECI_TOKEN": "your-circleci-token",
-        "CIRCLECI_BASE_URL": "https://circleci.com" // Optional - required for on-prem customers only
-      }
-    }
-  }
-}
-```
-To locate this file:
-
-macOS: `~/Library/Application Support/Claude/claude_desktop_config.json`
-
-Windows: `%APPDATA%\Claude\claude_desktop_config.json`
-
-[Claude Desktop setup](https://modelcontextprotocol.io/quickstart/user)
-
-
-#### Using Docker
-
-Add the following to your cursor MCP config:
-
-```json
-{
-  "mcpServers": {
-    "circleci-mcp-server": {
-      "command": "docker",
-      "args": [
-        "run",
-        "--rm",
-        "-i",
-        "-e",
-        "CIRCLECI_TOKEN",
-        "-e",
-        "CIRCLECI_BASE_URL",
-        "circleci:mcp-server-circleci"
-      ],
-      "env": {
-        "CIRCLECI_TOKEN": "your-circleci-token",
-        "CIRCLECI_BASE_URL": "https://circleci.com" // Optional - required for on-prem customers only
+        "MCP_REMOTE_URL": "https://your-worker.your-subdomain.workers.dev/sse"
       }
     }
   }
 }
 ```
 
-### VS Code
-
-#### Using NPX
-
-To install CircleCI MCP Server for VS Code in `.vscode/mcp.json`:
-
+**VS Code (.vscode/mcp.json):**
 ```json
 {
-  // 💡 Inputs are prompted on first server start, then stored securely by VS Code.
-  "inputs": [
-    {
-      "type": "promptString",
-      "id": "circleci-token",
-      "description": "CircleCI API Token",
-      "password": true
-    },
-    {
-      "type": "promptString",
-      "id": "circleci-base-url",
-      "description": "CircleCI Base URL",
-      "default": "https://circleci.com"
-    }
-  ],
   "servers": {
-    // https://github.com/ppl-ai/modelcontextprotocol/
-    "circleci-mcp-server": {
-      "type": "stdio",
-      "command": "npx",
-      "args": ["-y", "@circleci/mcp-server-circleci"],
-      "env": {
-        "CIRCLECI_TOKEN": "${input:circleci-token}",
-        "CIRCLECI_BASE_URL": "${input:circleci-base-url}"
-      }
+    "circleci-remote": {
+      "type": "remote",
+      "url": "https://your-worker.your-subdomain.workers.dev/sse"
     }
   }
 }
 ```
 
-#### Using Docker
-
-To install CircleCI MCP Server for VS Code in `.vscode/mcp.json` using Docker:
-
-```json
-{
-  // 💡 Inputs are prompted on first server start, then stored securely by VS Code.
-  "inputs": [
-    {
-      "type": "promptString",
-      "id": "circleci-token",
-      "description": "CircleCI API Token",
-      "password": true
-    },
-    {
-      "type": "promptString",
-      "id": "circleci-base-url",
-      "description": "CircleCI Base URL",
-      "default": "https://circleci.com"
-    }
-  ],
-  "servers": {
-    // https://github.com/ppl-ai/modelcontextprotocol/
-    "circleci-mcp-server": {
-      "type": "stdio",
-      "command": "docker",
-      "args": [
-        "run",
-        "--rm",
-        "-i",
-        "-e",
-        "CIRCLECI_TOKEN",
-        "-e",
-        "CIRCLECI_BASE_URL",
-        "circleci:mcp-server-circleci"
-      ],
-      "env": {
-        "CIRCLECI_TOKEN": "${input:circleci-token}",
-        "CIRCLECI_BASE_URL": "${input:circleci-base-url}"
-      }
-    }
-  }
-}
-```
-
-### Claude Desktop
-
-#### Using NPX
-
-Add the following to your claude_desktop_config.json:
-
-```json
-{
-  "mcpServers": {
-    "circleci-mcp-server": {
-      "command": "npx",
-      "args": ["-y", "@circleci/mcp-server-circleci"],
-      "env": {
-        "CIRCLECI_TOKEN": "your-circleci-token",
-        "CIRCLECI_BASE_URL": "https://circleci.com" // Optional - required for on-prem customers only
-      }
-    }
-  }
-}
-```
-
-#### Using Docker
-
-Add the following to your claude_desktop_config.json:
-
-```json
-{
-  "mcpServers": {
-    "circleci-mcp-server": {
-      "command": "docker",
-      "args": [
-        "run",
-        "--rm",
-        "-i",
-        "-e",
-        "CIRCLECI_TOKEN",
-        "-e",
-        "CIRCLECI_BASE_URL",
-        "circleci:mcp-server-circleci"
-      ],
-      "env": {
-        "CIRCLECI_TOKEN": "your-circleci-token",
-        "CIRCLECI_BASE_URL": "https://circleci.com" // Optional - required for on-prem customers only
-      }
-    }
-  }
-}
-```
-
-To find/create this file, first open your claude desktop settings. Then click on "Developer" in the left-hand bar of the Settings pane, and then click on "Edit Config"
-
-This will create a configuration file at:
-
-- macOS: ~/Library/Application Support/Claude/claude_desktop_config.json
-- Windows: %APPDATA%\Claude\claude_desktop_config.json
-
-See the guide below for more information on using MCP servers with Claude Desktop:
-https://modelcontextprotocol.io/quickstart/user
-
-### Claude Code
-
-#### Using NPX
-
-After installing Claude Code, run the following command:
-
+**MCP Inspector:**
 ```bash
-claude mcp add circleci-mcp-server -e CIRCLECI_TOKEN=your-circleci-token -- npx -y @circleci/mcp-server-circleci
+npx @modelcontextprotocol/inspector remote https://your-worker.your-subdomain.workers.dev/sse
 ```
 
-#### Using Docker
+**その他のMCPクライアント:**
+リモートサーバーをサポートする任意のMCPクライアントで、リモートURL `https://your-worker.your-subdomain.workers.dev/sse` を使用してください。
 
-After installing Claude Code, run the following command:
+# 機能
 
-```bash
-claude mcp add circleci-mcp-server -e CIRCLECI_TOKEN=your-circleci-token -e CIRCLECI_BASE_URL=https://circleci.com -- docker run --rm -i -e CIRCLECI_TOKEN -e CIRCLECI_BASE_URL circleci:mcp-server-circleci
-```
-
-See the guide below for more information on using MCP servers with Claude Code:
-https://docs.anthropic.com/en/docs/agents-and-tools/claude-code/tutorials#set-up-model-context-protocol-mcp
-
-### Windsurf
-
-#### Using NPX
-
-Add the following to your windsurf mcp_config.json:
-
-```json
-{
-  "mcpServers": {
-    "circleci-mcp-server": {
-      "command": "npx",
-      "args": ["-y", "@circleci/mcp-server-circleci"],
-      "env": {
-        "CIRCLECI_TOKEN": "your-circleci-token",
-        "CIRCLECI_BASE_URL": "https://circleci.com" // Optional - required for on-prem customers only
-      }
-    }
-  }
-}
-```
-
-#### Using Docker
-
-Add the following to your windsurf mcp_config.json:
-
-```json
-{
-  "mcpServers": {
-    "circleci-mcp-server": {
-      "command": "docker",
-      "args": [
-        "run",
-        "--rm",
-        "-i",
-        "-e",
-        "CIRCLECI_TOKEN",
-        "-e",
-        "CIRCLECI_BASE_URL",
-        "circleci:mcp-server-circleci"
-      ],
-      "env": {
-        "CIRCLECI_TOKEN": "your-circleci-token",
-        "CIRCLECI_BASE_URL": "https://circleci.com" // Optional - required for on-prem customers only
-      }
-    }
-  }
-}
-```
-
-See the guide below for more information on using MCP servers with windsurf:
-https://docs.windsurf.com/windsurf/mcp
-
-### Installing via Smithery
-
-To install CircleCI MCP Server for Claude Desktop automatically via [Smithery](https://smithery.ai/server/@CircleCI-Public/mcp-server-circleci):
-
-```bash
-npx -y @smithery/cli install @CircleCI-Public/mcp-server-circleci --client claude
-```
-
-# Features
-
-## Supported Tools
+## サポートされているツール
 
 - `get_build_failure_logs`
 
-  Retrieves detailed failure logs from CircleCI builds. This tool can be used in three ways:
+  CircleCIビルドから詳細な失敗ログを取得します。このツールは3つの方法で使用できます：
 
-  1. Using Project Slug and Branch (Recommended Workflow):
+  1. Project SlugとBranchを使用（推奨ワークフロー）：
 
-     - First, list your available projects:
-       - Use the list_followed_projects tool to get your projects
-       - Example: "List my CircleCI projects"
-       - Then choose the project, which has a projectSlug associated with it
-       - Example: "Lets use my-project"
-     - Then ask to retrieve the build failure logs for a specific branch:
-       - Example: "Get build failures for my-project on the main branch"
+     - まず、利用可能なプロジェクトをリストアップします：
+       - list_followed_projects ツールを使用してプロジェクトを取得
+       - 例: "List my CircleCI projects"
+       - その後、projectSlugが関連付けられたプロジェクトを選択
+       - 例: "Lets use my-project"
+     - 次に、特定のブランチのビルド失敗ログを取得するよう依頼：
+       - 例: "Get build failures for my-project on the main branch"
 
-  2. Using CircleCI URLs:
+  2. CircleCI URLを使用：
 
-     - Provide a failed job URL or pipeline URL directly
-     - Example: "Get logs from https://app.circleci.com/pipelines/github/org/repo/123"
+     - 失敗したジョブURLまたはパイプラインURLを直接提供
+     - 例: "Get logs from https://app.circleci.com/pipelines/github/org/repo/123"
 
-  3. Using Local Project Context:
-     - Works from your local workspace by providing:
-       - Workspace root path
-       - Git remote URL
-       - Branch name
-     - Example: "Find the latest failed pipeline on my current branch"
+  3. ローカルプロジェクトコンテキストを使用：
+     - 以下を提供してローカルワークスペースから動作：
+       - ワークスペースルートパス
+       - Git リモートURL
+       - ブランチ名
+     - 例: "Find the latest failed pipeline on my current branch"
 
-  The tool returns formatted logs including:
+  ツールは以下を含むフォーマット済みログを返します：
 
-  - Job names
-  - Step-by-step execution details
-  - Failure messages and context
+  - ジョブ名
+  - ステップバイステップの実行詳細
+  - 失敗メッセージとコンテキスト
 
-  This is particularly useful for:
+  これは特に以下の場合に有用です：
 
-  - Debugging failed builds
-  - Analyzing test failures
-  - Investigating deployment issues
-  - Quick access to build logs without leaving your IDE
+  - 失敗したビルドのデバッグ
+  - テスト失敗の分析
+  - デプロイメント問題の調査
+  - IDEを離れることなくビルドログへの迅速なアクセス
 
 - `find_flaky_tests`
 
-  Identifies flaky tests in your CircleCI project by analyzing test execution history. This leverages the flaky test detection feature described here: https://circleci.com/blog/introducing-test-insights-with-flaky-test-detection/#flaky-test-detection
+  テスト実行履歴を分析してCircleCIプロジェクト内の不安定なテストを特定します。これは、こちら（https://circleci.com/blog/introducing-test-insights-with-flaky-test-detection/#flaky-test-detection）で説明されている不安定テスト検出機能を活用しています。
 
-  This tool can be used in three ways:
+  このツールは3つの方法で使用できます：
 
-  1. Using Project Slug (Recommended Workflow):
+  1. Project Slugを使用（推奨ワークフロー）：
 
-     - First, list your available projects:
-       - Use the list_followed_projects tool to get your projects
-       - Example: "List my CircleCI projects"
-       - Then choose the project, which has a projectSlug associated with it
-       - Example: "Lets use my-project"
-     - Then ask to retrieve the flaky tests:
-       - Example: "Get flaky tests for my-project"
+     - まず、利用可能なプロジェクトをリストアップします：
+       - list_followed_projects ツールを使用してプロジェクトを取得
+       - 例: "List my CircleCI projects"
+       - その後、projectSlugが関連付けられたプロジェクトを選択
+       - 例: "Lets use my-project"
+     - 次に、不安定なテストを取得するよう依頼：
+       - 例: "Get flaky tests for my-project"
 
-  2. Using CircleCI Project URL:
+  2. CircleCI Project URLを使用：
 
-     - Provide the project URL directly from CircleCI
-     - Example: "Find flaky tests in https://app.circleci.com/pipelines/github/org/repo"
+     - CircleCIから直接プロジェクトURLを提供
+     - 例: "Find flaky tests in https://app.circleci.com/pipelines/github/org/repo"
 
-  3. Using Local Project Context:
-     - Works from your local workspace by providing:
-       - Workspace root path
-       - Git remote URL
-     - Example: "Find flaky tests in my current project"
+  3. ローカルプロジェクトコンテキストを使用：
+     - 以下を提供してローカルワークスペースから動作：
+       - ワークスペースルートパス
+       - Git リモートURL
+     - 例: "Find flaky tests in my current project"
 
-  The tool returns detailed information about flaky tests, including:
+  ツールは以下を含む不安定なテストの詳細情報を返します：
 
-  - Test names and file locations
-  - Failure messages and contexts
+  - テスト名とファイルの場所
+  - 失敗メッセージとコンテキスト
 
-  This helps you:
+  これにより以下のことが可能になります：
 
-  - Identify unreliable tests in your test suite
-  - Get detailed context about test failures
-  - Make data-driven decisions about test improvements
+  - テストスイート内の信頼性の低いテストの特定
+  - テスト失敗に関する詳細なコンテキストの取得
+  - テスト改善に関するデータ駆動型の意思決定
 
 - `get_latest_pipeline_status`
 
-  Retrieves the status of the latest pipeline for a given branch. This tool can be used in three ways:
+  指定されたブランチの最新パイプラインのステータスを取得します。このツールは3つの方法で使用できます：
 
-  1. Using Project Slug and Branch (Recommended Workflow):
+  1. Project SlugとBranchを使用（推奨ワークフロー）：
 
-     - First, list your available projects:
-       - Use the list_followed_projects tool to get your projects
-       - Example: "List my CircleCI projects"
-       - Then choose the project, which has a projectSlug associated with it
-       - Example: "Lets use my-project"
-     - Then ask to retrieve the latest pipeline status for a specific branch:
-       - Example: "Get the status of the latest pipeline for my-project on the main branch"
+     - まず、利用可能なプロジェクトをリストアップします：
+       - list_followed_projects ツールを使用してプロジェクトを取得
+       - 例: "List my CircleCI projects"
+       - その後、projectSlugが関連付けられたプロジェクトを選択
+       - 例: "Lets use my-project"
+     - 次に、特定のブランチの最新パイプラインステータスを取得するよう依頼：
+       - 例: "Get the status of the latest pipeline for my-project on the main branch"
 
-  2. Using CircleCI Project URL:
+  2. CircleCI Project URLを使用：
 
-     - Provide the project URL directly from CircleCI
-     - Example: "Get the status of the latest pipeline for https://app.circleci.com/pipelines/github/org/repo"
+     - CircleCIから直接プロジェクトURLを提供
+     - 例: "Get the status of the latest pipeline for https://app.circleci.com/pipelines/github/org/repo"
 
-  3. Using Local Project Context:
-     - Works from your local workspace by providing:
-       - Workspace root path
-       - Git remote URL
-       - Branch name
-     - Example: "Get the status of the latest pipeline for my current project"
+  3. ローカルプロジェクトコンテキストを使用：
+     - 以下を提供してローカルワークスペースから動作：
+       - ワークスペースルートパス
+       - Git リモートURL
+       - ブランチ名
+     - 例: "Get the status of the latest pipeline for my current project"
 
-  The tool returns a formatted status of the latest pipeline:
+  ツールは最新パイプラインのフォーマット済みステータスを返します：
 
-  - Workflow names and their current status
-  - Duration of each workflow
-  - Creation and completion timestamps
-  - Overall pipeline health
+  - ワークフロー名とその現在のステータス
+  - 各ワークフローの実行時間
+  - 作成および完了のタイムスタンプ
+  - パイプライン全体の健全性
 
-  Example output:
+  出力例：
 
   ```
   ---
@@ -439,132 +259,132 @@ npx -y @smithery/cli install @CircleCI-Public/mcp-server-circleci --client claud
   Stopped: in progress
   ```
 
-  This is particularly useful for:
+  これは特に以下の場合に有用です：
 
-  - Checking the status of the latest pipeline
-  - Getting the status of the latest pipeline for a specific branch
-  - Quickly checking the status of the latest pipeline without leaving your IDE
+  - 最新パイプラインのステータス確認
+  - 特定のブランチの最新パイプラインステータス取得
+  - IDEを離れることなく最新パイプラインのステータスを迅速に確認
 
 - `get_job_test_results`
 
-  Retrieves test metadata for CircleCI jobs, allowing you to analyze test results without leaving your IDE. This tool can be used in three ways:
+  CircleCIジョブのテストメタデータを取得し、IDEを離れることなくテスト結果を分析できます。このツールは3つの方法で使用できます：
 
-  1. Using Project Slug and Branch (Recommended Workflow):
+  1. Project SlugとBranchを使用（推奨ワークフロー）：
 
-     - First, list your available projects:
-       - Use the list_followed_projects tool to get your projects
-       - Example: "List my CircleCI projects"
-       - Then choose the project, which has a projectSlug associated with it
-       - Example: "Lets use my-project"
-     - Then ask to retrieve the test results for a specific branch:
-       - Example: "Get test results for my-project on the main branch"
+     - まず、利用可能なプロジェクトをリストアップします：
+       - list_followed_projects ツールを使用してプロジェクトを取得
+       - 例: "List my CircleCI projects"
+       - その後、projectSlugが関連付けられたプロジェクトを選択
+       - 例: "Lets use my-project"
+     - 次に、特定のブランチのテスト結果を取得するよう依頼：
+       - 例: "Get test results for my-project on the main branch"
 
-  2. Using CircleCI URL:
+  2. CircleCI URLを使用：
 
-     - Provide a CircleCI URL in any of these formats:
-       - Job URL: "https://app.circleci.com/pipelines/github/org/repo/123/workflows/abc-def/jobs/789"
-       - Workflow URL: "https://app.circleci.com/pipelines/github/org/repo/123/workflows/abc-def"
-       - Pipeline URL: "https://app.circleci.com/pipelines/github/org/repo/123"
-     - Example: "Get test results for https://app.circleci.com/pipelines/github/org/repo/123/workflows/abc-def"
+     - 以下のいずれかの形式でCircleCI URLを提供：
+       - ジョブURL: "https://app.circleci.com/pipelines/github/org/repo/123/workflows/abc-def/jobs/789"
+       - ワークフローURL: "https://app.circleci.com/pipelines/github/org/repo/123/workflows/abc-def"
+       - パイプラインURL: "https://app.circleci.com/pipelines/github/org/repo/123"
+     - 例: "Get test results for https://app.circleci.com/pipelines/github/org/repo/123/workflows/abc-def"
 
-  3. Using Local Project Context:
-     - Works from your local workspace by providing:
-       - Workspace root path
-       - Git remote URL
-       - Branch name
-     - Example: "Get test results for my current project on the main branch"
+  3. ローカルプロジェクトコンテキストを使用：
+     - 以下を提供してローカルワークスペースから動作：
+       - ワークスペースルートパス
+       - Git リモートURL
+       - ブランチ名
+     - 例: "Get test results for my current project on the main branch"
 
-  The tool returns detailed test result information:
+  ツールは詳細なテスト結果情報を返します：
 
-  - Summary of all tests (total, successful, failed)
-  - Detailed information about failed tests including:
-    - Test name and class
-    - File location
-    - Error messages
-    - Runtime duration
-  - List of successful tests with timing information
-  - Filter by tests result
+  - 全テストの概要（合計、成功、失敗）
+  - 失敗したテストの詳細情報：
+    - テスト名とクラス
+    - ファイルの場所
+    - エラーメッセージ
+    - 実行時間
+  - タイミング情報付きの成功したテストのリスト
+  - テスト結果によるフィルタリング
 
-  This is particularly useful for:
+  これは特に以下の場合に有用です：
 
-  - Quickly analyzing test failures without visiting the CircleCI web UI
-  - Identifying patterns in test failures
-  - Finding slow tests that might need optimization
-  - Checking test coverage across your project
-  - Troubleshooting flaky tests
+  - CircleCI WebUIを訪れることなくテスト失敗を迅速に分析
+  - テスト失敗のパターンの特定
+  - 最適化が必要な遅いテストの発見
+  - プロジェクト全体のテストカバレッジの確認
+  - 不安定なテストのトラブルシューティング
 
-  Note: The tool requires that test metadata is properly configured in your CircleCI config. For more information on setting up test metadata collection, see:
+  注意：このツールはCircleCI設定でテストメタデータが適切に設定されている必要があります。テストメタデータ収集の設定に関する詳細については、以下を参照してください：
   https://circleci.com/docs/collect-test-data/
 
 - `config_helper`
 
-  Assists with CircleCI configuration tasks by providing guidance and validation. This tool helps you:
+  ガイダンスと検証を提供してCircleCI設定タスクを支援します。このツールは以下を支援します：
 
-  1. Validate CircleCI Config:
-     - Checks your .circleci/config.yml for syntax and semantic errors
-     - Example: "Validate my CircleCI config"
+  1. CircleCI設定の検証：
+     - .circleci/config.yml の構文とセマンティックエラーをチェック
+     - 例: "Validate my CircleCI config"
 
-  The tool provides:
+  ツールが提供するもの：
 
-  - Detailed validation results
-  - Configuration recommendations
+  - 詳細な検証結果
+  - 設定に関する推奨事項
 
-  This helps you:
+  これにより以下のことが可能になります：
 
-  - Catch configuration errors before pushing
-  - Learn CircleCI configuration best practices
-  - Troubleshoot configuration issues
-  - Implement CircleCI features correctly
+  - プッシュ前に設定エラーを発見
+  - CircleCI設定のベストプラクティスを学習
+  - 設定の問題をトラブルシューティング
+  - CircleCI機能を正しく実装
 
 - `create_prompt_template`
 
-  Helps generate structured prompt templates for AI-enabled applications based on feature requirements. This tool:
+  機能要件に基づいてAI対応アプリケーション用の構造化プロンプトテンプレートの生成を支援します。このツールは：
 
-  1. Converts Feature Requirements to Structured Prompts:
-     - Transforms user requirements into optimized prompt templates
-     - Example: "Create a prompt template for generating bedtime stories by age and topic"
+  1. 機能要件を構造化プロンプトに変換：
+     - ユーザー要件を最適化されたプロンプトテンプレートに変換
+     - 例: "Create a prompt template for generating bedtime stories by age and topic"
 
-  The tool provides:
+  ツールが提供するもの：
 
-  - A structured prompt template
-  - A context schema defining required input parameters
+  - 構造化されたプロンプトテンプレート
+  - 必要な入力パラメータを定義するコンテキストスキーマ
 
-  This helps you:
+  これにより以下のことが可能になります：
 
-  - Create effective prompts for AI applications
-  - Standardize input parameters for consistent results
-  - Build robust AI-powered features
+  - AIアプリケーション用の効果的なプロンプトの作成
+  - 一貫した結果のための入力パラメータの標準化
+  - 堅牢なAI駆動機能の構築
 
 - `recommend_prompt_template_tests`
 
-  Generates test cases for prompt templates to ensure they produce expected results. This tool:
+  プロンプトテンプレートが期待する結果を生成することを確認するテストケースを生成します。このツールは：
 
-  1. Provides Test Cases for Prompt Templates:
-     - Creates diverse test scenarios based on your prompt template and context schema
-     - Example: "Generate tests for my bedtime story prompt template"
+  1. プロンプトテンプレート用のテストケースを提供：
+     - プロンプトテンプレートとコンテキストスキーマに基づいて多様なテストシナリオを作成
+     - 例: "Generate tests for my bedtime story prompt template"
 
-  The tool provides:
+  ツールが提供するもの：
 
-  - An array of recommended test cases
-  - Various parameter combinations to test template robustness
+  - 推奨されるテストケースの配列
+  - テンプレートの堅牢性をテストするための様々なパラメータ組み合わせ
 
-  This helps you:
+  これにより以下のことが可能になります：
 
-  - Validate prompt template functionality
-  - Ensure consistent AI responses across inputs
-  - Identify edge cases and potential issues
-  - Improve overall AI application quality
+  - プロンプトテンプレート機能の検証
+  - 入力全体で一貫したAI応答の確保
+  - エッジケースと潜在的な問題の特定
+  - AI アプリケーション全体の品質向上
 
 - `list_followed_projects`
 
-  Lists all projects that the user is following on CircleCI. This tool:
+  ユーザーがCircleCIでフォローしているすべてのプロジェクトをリストアップします。このツールは：
 
-  1. Retrieves and Displays Projects:
-     - Shows all projects the user has access to and is following
-     - Provides the project name and projectSlug for each entry
-     - Example: "List my CircleCI projects"
+  1. プロジェクトの取得と表示：
+     - ユーザーがアクセス権を持ちフォローしているすべてのプロジェクトを表示
+     - 各エントリのプロジェクト名とprojectSlugを提供
+     - 例: "List my CircleCI projects"
 
-  The tool returns a formatted list of projects, example output:
+  ツールはプロジェクトのフォーマット済みリストを返します。出力例：
 
   ```
   Projects followed:
@@ -572,168 +392,153 @@ npx -y @smithery/cli install @CircleCI-Public/mcp-server-circleci --client claud
   2. another-project (projectSlug: gh/organization/another-project)
   ```
 
-  This is particularly useful for:
+  これは特に以下の場合に有用です：
 
-  - Identifying which CircleCI projects are available to you
-  - Obtaining the projectSlug needed for other CircleCI tools
-  - Selecting a project for subsequent operations
+  - 利用可能なCircleCIプロジェクトの特定
+  - 他のCircleCIツールで必要なprojectSlugの取得
+  - 後続の操作のためのプロジェクト選択
 
-  Note: The projectSlug (not the project name) is required for many other CircleCI tools, and will be used for those tool calls after a project is selected.
+  注意：多くの他のCircleCIツールではprojectSlug（プロジェクト名ではなく）が必要であり、プロジェクト選択後のツール呼び出しに使用されます。
 
 - `run_pipeline`
 
-  Triggers a pipeline to run. This tool can be used in three ways:
+  パイプラインの実行をトリガーします。このツールは3つの方法で使用できます：
 
-  1. Using Project Slug and Branch (Recommended Workflow):
+  1. Project SlugとBranchを使用（推奨ワークフロー）：
 
-     - First, list your available projects:
-       - Use the list_followed_projects tool to get your projects
-       - Example: "List my CircleCI projects"
-       - Then choose the project, which has a projectSlug associated with it
-       - Example: "Lets use my-project"
-     - Then ask to run the pipeline for a specific branch:
-       - Example: "Run the pipeline for my-project on the main branch"
+     - まず、利用可能なプロジェクトをリストアップします：
+       - list_followed_projects ツールを使用してプロジェクトを取得
+       - 例: "List my CircleCI projects"
+       - その後、projectSlugが関連付けられたプロジェクトを選択
+       - 例: "Lets use my-project"
+     - 次に、特定のブランチでのパイプライン実行を依頼：
+       - 例: "Run the pipeline for my-project on the main branch"
 
-  2. Using CircleCI URL:
+  2. CircleCI URLを使用：
 
-     - Provide a CircleCI URL in any of these formats:
-       - Job URL: "https://app.circleci.com/pipelines/github/org/repo/123/workflows/abc-def/jobs/789"
-       - Workflow URL: "https://app.circleci.com/pipelines/github/org/repo/123/workflows/abc-def"
-       - Pipeline URL: "https://app.circleci.com/pipelines/github/org/repo/123"
-       - Project URL with branch: "https://app.circleci.com/projects/github/org/repo?branch=main"
-     - Example: "Run the pipeline for https://app.circleci.com/pipelines/github/org/repo/123/workflows/abc-def"
+     - 以下のいずれかの形式でCircleCI URLを提供：
+       - ジョブURL: "https://app.circleci.com/pipelines/github/org/repo/123/workflows/abc-def/jobs/789"
+       - ワークフローURL: "https://app.circleci.com/pipelines/github/org/repo/123/workflows/abc-def"
+       - パイプラインURL: "https://app.circleci.com/pipelines/github/org/repo/123"
+       - ブランチ付きプロジェクトURL: "https://app.circleci.com/projects/github/org/repo?branch=main"
+     - 例: "Run the pipeline for https://app.circleci.com/pipelines/github/org/repo/123/workflows/abc-def"
 
-  3. Using Local Project Context:
-     - Works from your local workspace by providing:
-       - Workspace root path
-       - Git remote URL
-       - Branch name
-     - Example: "Run the pipeline for my current project on the main branch"
+  3. ローカルプロジェクトコンテキストを使用：
+     - 以下を提供してローカルワークスペースから動作：
+       - ワークスペースルートパス
+       - Git リモートURL
+       - ブランチ名
+     - 例: "Run the pipeline for my current project on the main branch"
 
-  The tool returns a link to monitor the pipeline execution.
+  ツールはパイプライン実行を監視するためのリンクを返します。
 
-  This is particularly useful for:
+  これは特に以下の場合に有用です：
 
-  - Quickly running pipelines without visiting the CircleCI web UI
-  - Running pipelines from a specific branch
+  - CircleCI WebUIを訪れることなく迅速にパイプラインを実行
+  - 特定のブランチからのパイプライン実行
 
 - `rerun_workflow`
 
-  Reruns a workflow from its start or from the failed job.
+  ワークフローを最初から、または失敗したジョブから再実行します。
 
-  The tool returns the ID of the newly-created workflow, and a link to monitor the new workflow.
+  ツールは新しく作成されたワークフローのIDと、新しいワークフローを監視するためのリンクを返します。
 
-  This is particularly useful for:
+  これは特に以下の場合に有用です：
 
-  - Quickly rerunning a workflow from its start or from the failed job without visiting the CircleCI web UI
+  - CircleCI WebUIを訪れることなく、ワークフローを最初から、または失敗したジョブから迅速に再実行
 
 - `analyze_diff`
 
-  Analyzes git diffs against cursor rules to identify rule violations.
+  cursor ルールに対してgit diffを分析し、ルール違反を特定します。
 
-  This tool can be used by providing:
+  このツールは以下を提供して使用できます：
 
-  1. Git Diff Content:
+  1. Git Diff内容：
 
-     - Staged changes: `git diff --cached`
-     - Unstaged changes: `git diff`
-     - All changes: `git diff HEAD`
-     - Example: "Analyze my staged changes against the cursor rules"
+     - ステージング済みの変更: `git diff --cached`
+     - ステージング前の変更: `git diff`
+     - すべての変更: `git diff HEAD`
+     - 例: "Analyze my staged changes against the cursor rules"
 
-  2. Repository Rules:
-     - Rules from `.cursorrules` file in your repository root
-     - Rules from `.cursor/rules` directory
-     - Multiple rule files combined with `---` separator
-     - Example: "Check my diff against the TypeScript coding standards"
+  2. リポジトリルール：
+     - リポジトリルートの `.cursorrules` ファイルからのルール
+     - `.cursor/rules` ディレクトリからのルール
+     - `---` セパレータで結合された複数のルールファイル
+     - 例: "Check my diff against the TypeScript coding standards"
 
-  The tool provides:
+  ツールが提供するもの：
 
-  - Detailed violation reports with confidence scores
-  - Specific explanations for each rule violation
+  - 信頼度スコア付きの詳細な違反レポート
+  - 各ルール違反の具体的な説明
 
-  Example usage scenarios:
+  使用例シナリオ：
 
   - "Analyze my staged changes for any rule violations"
   - "Check my unstaged changes against rules"
 
-  This is particularly useful for:
+  これは特に以下の場合に有用です：
 
-  - Pre-commit code quality checks
-  - Ensuring consistency with team coding standards
-  - Catching rule violations before code review
+  - コミット前のコード品質チェック
+  - チームのコーディング標準との一貫性確保
+  - コードレビュー前のルール違反の発見
 
-  The tool integrates with your existing cursor rules setup and provides immediate feedback on code quality, helping you catch issues early in the development process.
+  このツールは既存のcursor rulesセットアップと統合され、コード品質に関する即座のフィードバックを提供し、開発プロセスの早期段階で問題を発見するのに役立ちます。
 
-# Development
+# 開発
 
-## Getting Started
+## 始め方
 
-1. Clone the repository:
+1. リポジトリのクローン：
 
    ```bash
    git clone https://github.com/CircleCI-Public/mcp-server-circleci.git
    cd mcp-server-circleci
    ```
 
-2. Install dependencies:
+2. 依存関係のインストール：
 
    ```bash
    pnpm install
    ```
 
-3. Build the project:
+3. プロジェクトのビルド：
    ```bash
    pnpm build
    ```
 
-## Building Docker Container
 
-You can build the Docker container locally using:
+## MCP Inspectorを使用した開発
 
-```bash
-docker build -t circleci:mcp-server-circleci .
-```
+MCP Serverでの開発を行う最も簡単な方法は、MCP inspectorを使用することです。MCP inspectorについて詳しくは https://modelcontextprotocol.io/docs/tools/inspector を参照してください。
 
-This will create a Docker image tagged as `circleci:mcp-server-circleci` that you can use with any MCP client.
-
-To run the container:
-
-```bash
-docker run --rm -i -e CIRCLECI_TOKEN=your-circleci-token -e CIRCLECI_BASE_URL=https://circleci.com circleci:mcp-server-circleci
-```
-
-## Development with MCP Inspector
-
-The easiest way to iterate on the MCP Server is using the MCP inspector. You can learn more about the MCP inspector at https://modelcontextprotocol.io/docs/tools/inspector
-
-1. Start the development server:
+1. 開発サーバーの起動：
 
    ```bash
-   pnpm watch # Keep this running in one terminal
+   pnpm watch # 一つのターミナルでこれを実行し続ける
    ```
 
-2. In a separate terminal, launch the inspector:
+2. 別のターミナルで、inspectorを起動：
 
    ```bash
    pnpm inspector
    ```
 
-3. Configure the environment:
-   - Add your `CIRCLECI_TOKEN` to the Environment Variables section in the inspector UI
-   - The token needs read access to your CircleCI projects
-   - Optionally you can set your CircleCI Base URL. Defaults to `https//circleci.com`
+3. 環境の設定：
+   - inspector UIの Environment Variables セクションに `CIRCLECI_TOKEN` を追加
+   - トークンはCircleCIプロジェクトへの読み取りアクセスが必要
+   - オプションでCircleCI Base URLを設定できます。デフォルトは `https//circleci.com`
 
-## Testing
+## テスト
 
-- Run the test suite:
+- テストスイートの実行：
 
   ```bash
   pnpm test
   ```
 
-- Run tests in watch mode during development:
+- 開発時のウォッチモードでのテスト実行：
   ```bash
   pnpm test:watch
   ```
 
-For more detailed contribution guidelines, see [CONTRIBUTING.md](CONTRIBUTING.md)
+より詳細な貢献ガイドラインについては、[CONTRIBUTING.md](CONTRIBUTING.md) を参照してください。

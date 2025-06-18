@@ -1,5 +1,5 @@
-import { runPipelineInputSchema } from './inputSchema.js';
 import { option1DescriptionBranchRequired } from '../shared/constants.js';
+import { runPipelineInputSchema } from './inputSchema.js';
 
 export const runPipelineTool = {
   name: 'run_pipeline' as const,

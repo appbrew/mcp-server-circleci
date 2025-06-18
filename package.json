@@ -14,10 +14,7 @@
   "bin": {
     "mcp-server-circleci": "./dist/index.js"
   },
-  "files": [
-    "dist",
-    "CHANGELOG.md"
-  ],
+  "files": ["dist", "CHANGELOG.md"],
   "packageManager": "pnpm@10.7.0",
   "scripts": {
     "build": "rm -rf dist && tsc && shx chmod +x dist/*.js",
@@ -27,15 +24,20 @@
     "create-tool": "node ./scripts/create-tool.js",
     "tsx": "tsx",
     "typecheck": "tsc --noEmit",
-    "lint": "eslint .",
-    "lint:fix": "eslint . --fix",
-    "prettier": "prettier --write \"**/*.{ts,js,json}\"",
+    "lint": "biome lint .",
+    "lint:fix": "biome lint --write .",
+    "format": "biome format --write .",
+    "check": "biome check --write .",
     "test": "vitest",
     "test:run": "vitest run",
     "prepublishOnly": "pnpm run build && pnpm run test:run",
     "bump:patch": "pnpm version patch --no-git-tag-version",
     "bump:minor": "pnpm version minor --no-git-tag-version",
-    "bump:major": "pnpm version major --no-git-tag-version"
+    "bump:major": "pnpm version major --no-git-tag-version",
+    "deploy": "wrangler deploy",
+    "dev": "wrangler dev",
+    "start": "wrangler dev",
+    "cf-typegen": "wrangler types"
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "1.8.0",
@@ -44,21 +46,16 @@
     "zod-to-json-schema": "^3.24.3"
   },
   "devDependencies": {
-    "@eslint/js": "^9.21.0",
+    "@biomejs/biome": "^1.9.4",
+    "@cloudflare/workers-types": "^4.20241218.0",
     "@types/node": "^22",
     "@types/parse-github-url": "^1.0.3",
-    "@typescript-eslint/eslint-plugin": "^8.25.0",
-    "@typescript-eslint/parser": "^8.25.0",
-    "eslint": "^9.21.0",
-    "eslint-config-prettier": "^10.0.2",
-    "eslint-plugin-prettier": "^5.2.3",
     "nodemon": "^3.1.9",
-    "prettier": "^3.5.2",
     "shx": "^0.4.0",
     "tsx": "^4.19.3",
     "typescript": "^5.6.2",
-    "typescript-eslint": "^8.28.0",
-    "vitest": "^3.1.1"
+    "vitest": "^3.1.1",
+    "wrangler": "^3.96.0"
   },
   "engines": {
     "node": ">=18.0.0"

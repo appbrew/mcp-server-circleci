@@ -1,5 +1,5 @@
 import { JobDetails } from '../schemas.js';
-import { HTTPClient } from './httpClient.js';
+import type { HTTPClient } from './httpClient.js';
 
 export class JobsV1API {
   protected client: HTTPClient;
@@ -21,9 +21,7 @@ export class JobsV1API {
     projectSlug: string;
     jobNumber: number;
   }): Promise<JobDetails> {
-    const rawResult = await this.client.get<unknown>(
-      `/project/${projectSlug}/${jobNumber}`,
-    );
+    const rawResult = await this.client.get<unknown>(`/project/${projectSlug}/${jobNumber}`);
     // Validate the response against our JobDetails schema
     return JobDetails.parse(rawResult);
   }

@@ -1,7 +1,7 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { runPipeline } from './handler.js';
-import * as projectDetection from '../../lib/project-detection/index.js';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import * as clientModule from '../../clients/client.js';
+import * as projectDetection from '../../lib/project-detection/index.js';
+import { runPipeline } from './handler.js';
 
 vi.mock('../../lib/project-detection/index.js');
 vi.mock('../../clients/client.js');
@@ -19,9 +19,7 @@ describe('runPipeline handler', () => {
 
   beforeEach(() => {
     vi.resetAllMocks();
-    vi.spyOn(clientModule, 'getCircleCIClient').mockReturnValue(
-      mockCircleCIClient as any,
-    );
+    vi.spyOn(clientModule, 'getCircleCIClient').mockReturnValue(mockCircleCIClient as any);
   });
 
   it('should return a valid MCP error response when no inputs are provided', async () => {
@@ -42,9 +40,7 @@ describe('runPipeline handler', () => {
   });
 
   it('should return a valid MCP error response when project is not found', async () => {
-    vi.spyOn(projectDetection, 'identifyProjectSlug').mockResolvedValue(
-      undefined,
-    );
+    vi.spyOn(projectDetection, 'identifyProjectSlug').mockResolvedValue(undefined);
 
     const args = {
       params: {
@@ -67,9 +63,7 @@ describe('runPipeline handler', () => {
   });
 
   it('should return a valid MCP error response when no branch is provided', async () => {
-    vi.spyOn(projectDetection, 'getProjectSlugFromURL').mockReturnValue(
-      'gh/org/repo',
-    );
+    vi.spyOn(projectDetection, 'getProjectSlugFromURL').mockReturnValue('gh/org/repo');
     vi.spyOn(projectDetection, 'getBranchFromURL').mockReturnValue(undefined);
 
     const args = {
@@ -112,16 +106,12 @@ describe('runPipeline handler', () => {
 
     // Verify that CircleCI API was not called
     expect(mockCircleCIClient.projects.getProject).not.toHaveBeenCalled();
-    expect(
-      mockCircleCIClient.pipelines.getPipelineDefinitions,
-    ).not.toHaveBeenCalled();
+    expect(mockCircleCIClient.pipelines.getPipelineDefinitions).not.toHaveBeenCalled();
     expect(mockCircleCIClient.pipelines.runPipeline).not.toHaveBeenCalled();
   });
 
   it('should return a valid MCP error response when no pipeline definitions are found', async () => {
-    vi.spyOn(projectDetection, 'getProjectSlugFromURL').mockReturnValue(
-      'gh/org/repo',
-    );
+    vi.spyOn(projectDetection, 'getProjectSlugFromURL').mockReturnValue('gh/org/repo');
     vi.spyOn(projectDetection, 'getBranchFromURL').mockReturnValue('main');
 
     mockCircleCIClient.projects.getProject.mockResolvedValue({
@@ -149,9 +139,7 @@ describe('runPipeline handler', () => {
   });
 
   it('should return a list of pipeline choices when multiple pipeline definitions are found and no choice is provided', async () => {
-    vi.spyOn(projectDetection, 'getProjectSlugFromURL').mockReturnValue(
-      'gh/org/repo',
-    );
+    vi.spyOn(projectDetection, 'getProjectSlugFromURL').mockReturnValue('gh/org/repo');
     vi.spyOn(projectDetection, 'getBranchFromURL').mockReturnValue('main');
 
     mockCircleCIClient.projects.getProject.mockResolvedValue({
@@ -177,17 +165,13 @@ describe('runPipeline handler', () => {
     expect(Array.isArray(response.content)).toBe(true);
     expect(response.content[0]).toHaveProperty('type', 'text');
     expect(typeof response.content[0].text).toBe('string');
-    expect(response.content[0].text).toContain(
-      'Multiple pipeline definitions found',
-    );
+    expect(response.content[0].text).toContain('Multiple pipeline definitions found');
     expect(response.content[0].text).toContain('Pipeline 1');
     expect(response.content[0].text).toContain('Pipeline 2');
   });
 
   it('should return an error when an invalid pipeline choice is provided', async () => {
-    vi.spyOn(projectDetection, 'getProjectSlugFromURL').mockReturnValue(
-      'gh/org/repo',
-    );
+    vi.spyOn(projectDetection, 'getProjectSlugFromURL').mockReturnValue('gh/org/repo');
     vi.spyOn(projectDetection, 'getBranchFromURL').mockReturnValue('main');
 
     mockCircleCIClient.projects.getProject.mockResolvedValue({
@@ -216,14 +200,12 @@ describe('runPipeline handler', () => {
     expect(response.content[0]).toHaveProperty('type', 'text');
     expect(typeof response.content[0].text).toBe('string');
     expect(response.content[0].text).toContain(
-      'Pipeline definition with name Non-existent Pipeline not found',
+      'Pipeline definition with name Non-existent Pipeline not found'
     );
   });
 
   it('should run a pipeline with a specific choice when valid pipeline choice is provided', async () => {
-    vi.spyOn(projectDetection, 'getProjectSlugFromURL').mockReturnValue(
-      'gh/org/repo',
-    );
+    vi.spyOn(projectDetection, 'getProjectSlugFromURL').mockReturnValue('gh/org/repo');
     vi.spyOn(projectDetection, 'getBranchFromURL').mockReturnValue('main');
 
     mockCircleCIClient.projects.getProject.mockResolvedValue({
@@ -264,9 +246,7 @@ describe('runPipeline handler', () => {
   });
 
   it('should run a pipeline with the first choice when only one pipeline definition is found', async () => {
-    vi.spyOn(projectDetection, 'getProjectSlugFromURL').mockReturnValue(
-      'gh/org/repo',
-    );
+    vi.spyOn(projectDetection, 'getProjectSlugFromURL').mockReturnValue('gh/org/repo');
     vi.spyOn(projectDetection, 'getBranchFromURL').mockReturnValue('main');
 
     mockCircleCIClient.projects.getProject.mockResolvedValue({
@@ -305,9 +285,7 @@ describe('runPipeline handler', () => {
   });
 
   it('should detect project from git remote and run pipeline', async () => {
-    vi.spyOn(projectDetection, 'identifyProjectSlug').mockResolvedValue(
-      'gh/org/repo',
-    );
+    vi.spyOn(projectDetection, 'identifyProjectSlug').mockResolvedValue('gh/org/repo');
 
     mockCircleCIClient.projects.getProject.mockResolvedValue({
       id: 'project-id',

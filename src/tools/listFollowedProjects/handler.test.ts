@@ -1,6 +1,6 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { listFollowedProjects } from './handler.js';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import * as clientModule from '../../clients/client.js';
+import { listFollowedProjects } from './handler.js';
 
 vi.mock('../../clients/client.js');
 
@@ -14,7 +14,7 @@ describe('listFollowedProjects handler', () => {
   beforeEach(() => {
     vi.resetAllMocks();
     vi.spyOn(clientModule, 'getCircleCIPrivateClient').mockReturnValue(
-      mockCircleCIPrivateClient as any,
+      mockCircleCIPrivateClient as any
     );
   });
 
@@ -84,9 +84,7 @@ describe('listFollowedProjects handler', () => {
     expect(Array.isArray(response.content)).toBe(true);
     expect(response.content[0]).toHaveProperty('type', 'text');
     expect(typeof response.content[0].text).toBe('string');
-    expect(response.content[0].text).toContain(
-      'WARNING: Not all projects were included',
-    );
+    expect(response.content[0].text).toContain('WARNING: Not all projects were included');
     expect(response.content[0].text).toContain('Project 1');
     expect(response.content[0].text).toContain('gh/org/project1');
   });

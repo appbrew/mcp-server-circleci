@@ -1,5 +1,5 @@
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { HTTPClient } from './httpClient.js';
-import { expect, vi, describe, it, beforeEach, afterEach } from 'vitest';
 
 describe('HTTPClient', () => {
   let client: HTTPClient;
@@ -10,7 +10,7 @@ describe('HTTPClient', () => {
 
   beforeEach(() => {
     // Clear any environment variables before each test
-    delete process.env.CIRCLECI_BASE_URL;
+    process.env.CIRCLECI_BASE_URL = undefined;
     client = new HTTPClient(defaultBaseURL, apiPath, { headers });
     global.fetch = vi.fn();
   });
@@ -18,7 +18,7 @@ describe('HTTPClient', () => {
   afterEach(() => {
     vi.resetAllMocks();
     // Clean up environment variables
-    delete process.env.CIRCLECI_BASE_URL;
+    process.env.CIRCLECI_BASE_URL = undefined;
   });
 
   describe('constructor', () => {
@@ -71,9 +71,7 @@ describe('HTTPClient', () => {
       const response = new Response(JSON.stringify({ message: errorMessage }), {
         status: 404,
       });
-      await expect((client as any).handleResponse(response)).rejects.toThrow(
-        'CircleCI API Error',
-      );
+      await expect((client as any).handleResponse(response)).rejects.toThrow('CircleCI API Error');
     });
   });
 });

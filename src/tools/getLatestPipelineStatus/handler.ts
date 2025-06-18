@@ -1,13 +1,10 @@
-import { ToolCallback } from '@modelcontextprotocol/sdk/server/mcp.js';
-import { getLatestPipelineStatusInputSchema } from './inputSchema.js';
-import {
-  getBranchFromURL,
-  getProjectSlugFromURL,
-} from '../../lib/project-detection/index.js';
-import mcpErrorOutput from '../../lib/mcpErrorOutput.js';
-import { identifyProjectSlug } from '../../lib/project-detection/index.js';
-import { getLatestPipelineWorkflows } from '../../lib/latest-pipeline/getLatestPipelineWorkflows.js';
+import type { ToolCallback } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { formatLatestPipelineStatus } from '../../lib/latest-pipeline/formatLatestPipelineStatus.js';
+import { getLatestPipelineWorkflows } from '../../lib/latest-pipeline/getLatestPipelineWorkflows.js';
+import mcpErrorOutput from '../../lib/mcpErrorOutput.js';
+import { getBranchFromURL, getProjectSlugFromURL } from '../../lib/project-detection/index.js';
+import { identifyProjectSlug } from '../../lib/project-detection/index.js';
+import type { getLatestPipelineStatusInputSchema } from './inputSchema.js';
 
 export const getLatestPipelineStatus: ToolCallback<{
   params: typeof getLatestPipelineStatusInputSchema;
@@ -26,7 +23,7 @@ export const getLatestPipelineStatus: ToolCallback<{
   if (inputProjectSlug) {
     if (!branch) {
       return mcpErrorOutput(
-        'Branch not provided. When using projectSlug, a branch must also be specified.',
+        'Branch not provided. When using projectSlug, a branch must also be specified.'
       );
     }
     projectSlug = inputProjectSlug;
@@ -39,7 +36,7 @@ export const getLatestPipelineStatus: ToolCallback<{
     });
   } else {
     return mcpErrorOutput(
-      'Missing required inputs. Please provide either: 1) projectSlug with branch, 2) projectURL, or 3) workspaceRoot with gitRemoteURL and branch.',
+      'Missing required inputs. Please provide either: 1) projectSlug with branch, 2) projectURL, or 3) workspaceRoot with gitRemoteURL and branch.'
     );
   }
 

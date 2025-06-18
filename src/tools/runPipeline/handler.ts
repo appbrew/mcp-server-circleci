@@ -1,13 +1,13 @@
-import { ToolCallback } from '@modelcontextprotocol/sdk/server/mcp.js';
+import type { ToolCallback } from '@modelcontextprotocol/sdk/server/mcp.js';
+import { getAppURL } from '../../clients/circleci/index.js';
+import { getCircleCIClient } from '../../clients/client.js';
+import mcpErrorOutput from '../../lib/mcpErrorOutput.js';
 import {
   getBranchFromURL,
   getProjectSlugFromURL,
   identifyProjectSlug,
 } from '../../lib/project-detection/index.js';
-import { runPipelineInputSchema } from './inputSchema.js';
-import mcpErrorOutput from '../../lib/mcpErrorOutput.js';
-import { getCircleCIClient } from '../../clients/client.js';
-import { getAppURL } from '../../clients/circleci/index.js';
+import type { runPipelineInputSchema } from './inputSchema.js';
 
 export const runPipeline: ToolCallback<{
   params: typeof runPipelineInputSchema;
@@ -28,7 +28,7 @@ export const runPipeline: ToolCallback<{
   if (inputProjectSlug) {
     if (!branch) {
       return mcpErrorOutput(
-        'Branch not provided. When using projectSlug, a branch must also be specified.',
+        'Branch not provided. When using projectSlug, a branch must also be specified.'
       );
     }
     projectSlug = inputProjectSlug;
@@ -41,7 +41,7 @@ export const runPipeline: ToolCallback<{
     });
   } else {
     return mcpErrorOutput(
-      'Missing required inputs. Please provide either: 1) projectSlug with branch, 2) projectURL, or 3) workspaceRoot with gitRemoteURL and branch.',
+      'Missing required inputs. Please provide either: 1) projectSlug with branch, 2) projectURL, or 3) workspaceRoot with gitRemoteURL and branch.'
     );
   }
 
@@ -56,9 +56,7 @@ export const runPipeline: ToolCallback<{
   }
   const foundBranch = branchFromURL || branch;
   if (!foundBranch) {
-    return mcpErrorOutput(
-      'No branch provided. Ask the user to provide the branch.',
-    );
+    return mcpErrorOutput('No branch provided. Ask the user to provide the branch.');
   }
 
   const circleci = getCircleCIClient();
@@ -78,14 +76,13 @@ export const runPipeline: ToolCallback<{
 
   if (pipelineChoices.length === 0) {
     return mcpErrorOutput(
-      'No pipeline definitions found. Please make sure your project is set up on CircleCI to run pipelines.',
+      'No pipeline definitions found. Please make sure your project is set up on CircleCI to run pipelines.'
     );
   }
 
   const formattedPipelineChoices = pipelineChoices
     .map(
-      (pipeline, index) =>
-        `${index + 1}. ${pipeline.name} (definitionId: ${pipeline.definitionId})`,
+      (pipeline, index) => `${index + 1}. ${pipeline.name} (definitionId: ${pipeline.definitionId})`
     )
     .join('\n');
 
@@ -106,12 +103,11 @@ export const runPipeline: ToolCallback<{
 
   if (pipelineChoiceName && !chosenPipeline) {
     return mcpErrorOutput(
-      `Pipeline definition with name ${pipelineChoiceName} not found. Please choose one of the following:\n${formattedPipelineChoices}`,
+      `Pipeline definition with name ${pipelineChoiceName} not found. Please choose one of the following:\n${formattedPipelineChoices}`
     );
   }
 
-  const runPipelineDefinitionId =
-    chosenPipeline?.definitionId || pipelineChoices[0].definitionId;
+  const runPipelineDefinitionId = chosenPipeline?.definitionId || pipelineChoices[0].definitionId;
 
   const runPipelineResponse = await circleci.pipelines.runPipeline({
     projectSlug,

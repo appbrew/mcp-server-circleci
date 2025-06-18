@@ -1,7 +1,7 @@
-import { HTTPClient } from '../circleci/httpClient.js';
-import { PromptObject, RuleReview } from '../schemas.js';
 import { z } from 'zod';
-import { PromptOrigin } from '../../tools/shared/constants.js';
+import type { PromptOrigin } from '../../tools/shared/constants.js';
+import type { HTTPClient } from '../circleci/httpClient.js';
+import { PromptObject, RuleReview } from '../schemas.js';
 
 export const WorkbenchResponseSchema = z
   .object({
@@ -15,9 +15,7 @@ export const RecommendedTestsResponseSchema = z.object({
   recommendedTests: z.array(z.string()),
 });
 
-export type RecommendedTestsResponse = z.infer<
-  typeof RecommendedTestsResponseSchema
->;
+export type RecommendedTestsResponse = z.infer<typeof RecommendedTestsResponseSchema>;
 export class CircletAPI {
   protected client: HTTPClient;
 
@@ -25,10 +23,7 @@ export class CircletAPI {
     this.client = client;
   }
 
-  async createPromptTemplate(
-    prompt: string,
-    promptOrigin: PromptOrigin,
-  ): Promise<PromptObject> {
+  async createPromptTemplate(prompt: string, promptOrigin: PromptOrigin): Promise<PromptObject> {
     const result = await this.client.post<WorkbenchResponse>('/workbench', {
       prompt,
       promptOrigin,
@@ -37,9 +32,7 @@ export class CircletAPI {
     const parsedResult = WorkbenchResponseSchema.safeParse(result);
 
     if (!parsedResult.success) {
-      throw new Error(
-        `Failed to parse workbench response. Error: ${parsedResult.error.message}`,
-      );
+      throw new Error(`Failed to parse workbench response. Error: ${parsedResult.error.message}`);
     }
 
     return parsedResult.data.workbench;
@@ -52,19 +45,16 @@ export class CircletAPI {
     template: string;
     contextSchema: Record<string, string>;
   }): Promise<string[]> {
-    const result = await this.client.post<RecommendedTestsResponse>(
-      '/recommended-tests',
-      {
-        template,
-        contextSchema,
-      },
-    );
+    const result = await this.client.post<RecommendedTestsResponse>('/recommended-tests', {
+      template,
+      contextSchema,
+    });
 
     const parsedResult = RecommendedTestsResponseSchema.safeParse(result);
 
     if (!parsedResult.success) {
       throw new Error(
-        `Failed to parse recommended tests response. Error: ${parsedResult.error.message}`,
+        `Failed to parse recommended tests response. Error: ${parsedResult.error.message}`
       );
     }
 
@@ -84,9 +74,7 @@ export class CircletAPI {
     });
     const parsedResult = RuleReview.safeParse(rawResult);
     if (!parsedResult.success) {
-      throw new Error(
-        `Failed to parse rule review response. Error: ${parsedResult.error.message}`,
-      );
+      throw new Error(`Failed to parse rule review response. Error: ${parsedResult.error.message}`);
     }
     return parsedResult.data;
   }

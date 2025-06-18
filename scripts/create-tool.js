@@ -1,8 +1,8 @@
 #!/usr/bin/env node
 /* eslint-disable no-undef */
-import fs from 'fs';
-import path from 'path';
-import { fileURLToPath } from 'url';
+import fs from 'node:fs';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 
 // Get the current file's directory name
 const __filename = fileURLToPath(import.meta.url);
@@ -18,21 +18,12 @@ if (!toolName) {
 }
 
 // Convert toolName to snake_case for tool name and camelCase for variables
-const snakeCaseName = toolName
-  .replace(/([a-z])([A-Z])/g, '$1_$2')
-  .toLowerCase();
+const snakeCaseName = toolName.replace(/([a-z])([A-Z])/g, '$1_$2').toLowerCase();
 
-const camelCaseName = snakeCaseName.replace(/_([a-z])/g, (_, letter) =>
-  letter.toUpperCase(),
-);
+const camelCaseName = snakeCaseName.replace(/_([a-z])/g, (_, letter) => letter.toUpperCase());
 
 // Create directory for the tool
-const toolDir = path.join(
-  path.resolve(__dirname, '..'),
-  'src',
-  'tools',
-  toolName,
-);
+const toolDir = path.join(path.resolve(__dirname, '..'), 'src', 'tools', toolName);
 
 if (fs.existsSync(toolDir)) {
   console.error(`Tool directory already exists: ${toolDir}`);

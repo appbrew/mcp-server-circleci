@@ -1,5 +1,5 @@
 import { Project } from '../schemas.js';
-import { HTTPClient } from './httpClient.js';
+import type { HTTPClient } from './httpClient.js';
 
 export class ProjectsAPI {
   protected client: HTTPClient;

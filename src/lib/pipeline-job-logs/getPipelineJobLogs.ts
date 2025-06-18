@@ -1,5 +1,5 @@
 import { getCircleCIClient } from '../../clients/client.js';
-import { Pipeline } from '../../clients/schemas.js';
+import type { Pipeline } from '../../clients/schemas.js';
 import getJobLogs from './getJobLogs.js';
 
 export type GetPipelineJobLogsParams = {
@@ -42,9 +42,7 @@ const getPipelineJobLogs = async ({
     pipeline = pipelines[0];
   } else {
     // If no jobNumber, pipelineNumber or branch is provided, throw an error
-    throw new Error(
-      'Either jobNumber, pipelineNumber or branch must be provided',
-    );
+    throw new Error('Either jobNumber, pipelineNumber or branch must be provided');
   }
 
   if (!pipeline) {
@@ -61,15 +59,12 @@ const getPipelineJobLogs = async ({
         return await circleci.jobs.getWorkflowJobs({
           workflowId: workflow.id,
         });
-      }),
+      })
     )
   ).flat();
 
   const jobNumbers = jobs
-    .filter(
-      (job): job is typeof job & { job_number: number } =>
-        job.job_number != null,
-    )
+    .filter((job): job is typeof job & { job_number: number } => job.job_number != null)
     .map((job) => job.job_number);
 
   return await getJobLogs({

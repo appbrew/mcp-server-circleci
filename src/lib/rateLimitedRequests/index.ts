@@ -29,13 +29,10 @@ const RATE_LIMIT_MAX_REQUESTS = 40;
 const ifAllItemsArePopulated = (
   batchState: BatchState,
   startIndex: number,
-  endIndex: number,
+  endIndex: number
 ): boolean => {
   for (let i = startIndex; i < endIndex; i++) {
-    if (
-      i < batchState.batchItemsToFire.length &&
-      batchState.batchItemsToFire[i] === undefined
-    ) {
+    if (i < batchState.batchItemsToFire.length && batchState.batchItemsToFire[i] === undefined) {
       return false;
     }
   }
@@ -49,7 +46,7 @@ const onProgressFired = (
   onProgress: (data: {
     totalRequests: number;
     completedRequests: number;
-  }) => void,
+  }) => void
 ): void => {
   batchState.completedRequests += endIndex - startIndex;
   const data = {
@@ -65,7 +62,7 @@ const onBatchCompleteFired = (
   startIndex: number,
   endIndex: number,
   batchSize: number,
-  onBatchComplete: (result: BatchResult) => void,
+  onBatchComplete: (result: BatchResult) => void
 ): void => {
   for (let i = startIndex; i < endIndex; i++) {
     batchState.batchItemsToFire[i] = batchItems[i - startIndex];
@@ -73,19 +70,12 @@ const onBatchCompleteFired = (
 
   for (let i = 0; i < batchState.batchItemsToFire.length; i = i + batchSize) {
     const batchEndIndex = i + batchSize;
-    const allItemsArePopulated = ifAllItemsArePopulated(
-      batchState,
-      i,
-      batchEndIndex,
-    );
+    const allItemsArePopulated = ifAllItemsArePopulated(batchState, i, batchEndIndex);
     if (allItemsArePopulated) {
       const batch = batchState.batchItemsToFire.slice(i, batchEndIndex);
       const result = {
         startIndex: i,
-        stopIndex: Math.min(
-          batchEndIndex - 1,
-          batchState.batchItemsToFire.length - 1,
-        ),
+        stopIndex: Math.min(batchEndIndex - 1, batchState.batchItemsToFire.length - 1),
         results: batch,
       };
       for (let j = 0; j < batchEndIndex; j++) {
@@ -101,7 +91,7 @@ const onBatchFinish = (
   batch: Promise<any>[],
   options: BatchOptions | undefined,
   startIndex: number,
-  endIndex: number,
+  endIndex: number
 ): void => {
   Promise.all(batch).then((batchItems) => {
     if (options?.batchSize && options.onBatchComplete) {
@@ -111,7 +101,7 @@ const onBatchFinish = (
         startIndex,
         endIndex,
         options.batchSize,
-        options.onBatchComplete,
+        options.onBatchComplete
       );
     }
     if (options?.onProgress) {
@@ -124,7 +114,7 @@ export const rateLimitedRequests = async <T>(
   requests: (() => Promise<T>)[],
   maxRequests = RATE_LIMIT_MAX_REQUESTS,
   interval = RATE_LIMIT_INTERVAL,
-  options?: BatchOptions,
+  options?: BatchOptions
 ): Promise<T[]> => {
   const batchState: BatchState = {
     batchItemsToFire: new Array(requests.length),
@@ -135,17 +125,13 @@ export const rateLimitedRequests = async <T>(
   const result = new Array(requests.length);
   const promises: Promise<T>[] = [];
 
-  for (
-    let startIndex = 0;
-    startIndex < requests.length;
-    startIndex += maxRequests
-  ) {
+  for (let startIndex = 0; startIndex < requests.length; startIndex += maxRequests) {
     const endIndex = Math.min(startIndex + maxRequests, requests.length);
     const batch = requests.slice(startIndex, endIndex).map((execute, index) =>
       Promise.resolve(execute()).then((res) => {
         result[startIndex + index] = res;
         return res;
-      }),
+      })
     );
 
     onBatchFinish(batchState, batch, options, startIndex, endIndex);

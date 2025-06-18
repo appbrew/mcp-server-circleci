@@ -1,12 +1,12 @@
+import { ConfigValidateAPI } from './configValidate.js';
 import { HTTPClient } from './httpClient.js';
+import { InsightsAPI } from './insights.js';
 import { JobsAPI } from './jobs.js';
 import { JobsV1API } from './jobsV1.js';
-import { InsightsAPI } from './insights.js';
 import { PipelinesAPI } from './pipelines.js';
-import { WorkflowsAPI } from './workflows.js';
-import { TestsAPI } from './tests.js';
-import { ConfigValidateAPI } from './configValidate.js';
 import { ProjectsAPI } from './projects.js';
+import { TestsAPI } from './tests.js';
+import { WorkflowsAPI } from './workflows.js';
 export type TCircleCIClient = InstanceType<typeof CircleCIClients>;
 
 export const getBaseURL = (useAPISubdomain = false) => {

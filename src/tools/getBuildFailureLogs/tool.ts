@@ -1,5 +1,5 @@
-import { getBuildFailureOutputInputSchema } from './inputSchema.js';
 import { option1DescriptionBranchRequired } from '../shared/constants.js';
+import { getBuildFailureOutputInputSchema } from './inputSchema.js';
 
 export const getBuildFailureLogsTool = {
   name: 'get_build_failure_logs' as const,

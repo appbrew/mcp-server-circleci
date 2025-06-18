@@ -7,7 +7,7 @@ export class HTTPClient {
     apiPath: string,
     options?: {
       headers?: HeadersInit;
-    },
+    }
   ) {
     const { headers } = options || {};
     this.baseURL = baseURL + apiPath;
@@ -42,10 +42,10 @@ export class HTTPClient {
    */
   protected async handleResponse<T>(response: Response): Promise<T> {
     if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}));
+      const errorData = (await response.json().catch(() => ({}))) as { message?: string };
       if (response.status >= 400 && response.status < 600) {
         throw new Error(
-          `CircleCI API Error: ${response.status} \nURL: ${response.url} \nMessage: ${errorData.message || response.statusText}`,
+          `CircleCI API Error: ${response.status} \nURL: ${response.url} \nMessage: ${errorData.message || response.statusText}`
         );
       }
       throw new Error('No response received from CircleCI API');
@@ -76,11 +76,7 @@ export class HTTPClient {
   /**
    * Helper method to make POST requests
    */
-  async post<T>(
-    path: string,
-    data?: Record<string, any>,
-    params?: Record<string, any>,
-  ) {
+  async post<T>(path: string, data?: Record<string, any>, params?: Record<string, any>) {
     const url = this.buildURL(path, params);
     const response = await fetch(url.toString(), {
       method: 'POST',
@@ -107,11 +103,7 @@ export class HTTPClient {
   /**
    * Helper method to make PUT requests
    */
-  async put<T>(
-    path: string,
-    data?: Record<string, any>,
-    params?: Record<string, any>,
-  ) {
+  async put<T>(path: string, data?: Record<string, any>, params?: Record<string, any>) {
     const url = this.buildURL(path, params);
     const response = await fetch(url.toString(), {
       method: 'PUT',
@@ -125,11 +117,7 @@ export class HTTPClient {
   /**
    * Helper method to make PATCH requests
    */
-  async patch<T>(
-    path: string,
-    data?: Record<string, any>,
-    params?: Record<string, any>,
-  ) {
+  async patch<T>(path: string, data?: Record<string, any>, params?: Record<string, any>) {
     const url = this.buildURL(path, params);
     const response = await fetch(url.toString(), {
       method: 'PATCH',

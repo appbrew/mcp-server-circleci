@@ -1,0 +1,19 @@
+{
+  "name": "mcp-server-circleci",
+  "main": "src/workers/index.ts",
+  "compatibility_date": "2025-03-10",
+  "compatibility_flags": ["nodejs_compat"],
+  "kv_namespaces": [
+    {
+      "binding": "OAUTH_DATA",
+      "id": "your-kv-namespace-id",
+      "preview_id": "your-preview-kv-namespace-id"
+    }
+  ],
+  "observability": {
+    "enabled": true
+  },
+  "dev": {
+    "port": 8788
+  }
+}

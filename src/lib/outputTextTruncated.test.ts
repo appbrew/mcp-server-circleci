@@ -1,4 +1,4 @@
-import { describe, it, expect } from 'vitest';
+import { describe, expect, it } from 'vitest';
 import outputTextTruncated from './outputTextTruncated';
 
 describe('outputTextTruncated', () => {
@@ -21,9 +21,7 @@ describe('outputTextTruncated', () => {
     expect(result.content[0].text.length).toBeLessThan(longText.length);
 
     const truncationNoticeLength = result.content[0].text.indexOf('\n\n') + 2;
-    const truncatedContent = result.content[0].text.slice(
-      truncationNoticeLength,
-    );
+    const truncatedContent = result.content[0].text.slice(truncationNoticeLength);
     expect(longText.endsWith(truncatedContent)).toBe(true);
   });
 });

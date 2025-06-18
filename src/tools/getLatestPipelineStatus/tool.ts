@@ -1,5 +1,5 @@
-import { getLatestPipelineStatusInputSchema } from './inputSchema.js';
 import { option1DescriptionBranchRequired } from '../shared/constants.js';
+import { getLatestPipelineStatusInputSchema } from './inputSchema.js';
 
 export const getLatestPipelineStatusTool = {
   name: 'get_latest_pipeline_status' as const,

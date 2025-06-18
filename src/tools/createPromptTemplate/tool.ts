@@ -1,15 +1,15 @@
-import { createPromptTemplateInputSchema } from './inputSchema.js';
 import {
   PromptOrigin,
-  promptsOutputDirectory,
   PromptWorkbenchToolName,
-  fileNameTemplate,
+  defaultModel,
+  defaultTemperature,
   fileNameExample1,
   fileNameExample2,
   fileNameExample3,
-  defaultModel,
-  defaultTemperature,
+  fileNameTemplate,
+  promptsOutputDirectory,
 } from '../shared/constants.js';
+import { createPromptTemplateInputSchema } from './inputSchema.js';
 
 const paramsKey = 'params';
 const promptKey = 'prompt';

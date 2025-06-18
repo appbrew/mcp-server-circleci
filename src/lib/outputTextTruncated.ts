@@ -1,4 +1,4 @@
-import { McpSuccessResponse } from './mcpResponse.js';
+import type { McpSuccessResponse } from './mcpResponse.js';
 
 const MAX_LENGTH = 50000;
 
@@ -18,8 +18,7 @@ const outputTextTruncated = (outputText: string): McpSuccessResponse => {
 
     // Take the tail of the output text
     const truncatedText =
-      truncationNotice +
-      outputText.slice(-MAX_LENGTH + truncationNotice.length);
+      truncationNotice + outputText.slice(-MAX_LENGTH + truncationNotice.length);
 
     return {
       content: [{ type: 'text' as const, text: truncatedText }],

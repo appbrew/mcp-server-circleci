@@ -1,15 +1,15 @@
-import { ToolCallback } from '@modelcontextprotocol/sdk/server/mcp.js';
-import { recommendPromptTemplateTestsInputSchema } from './inputSchema.js';
+import type { ToolCallback } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { CircletClient } from '../../clients/circlet/index.js';
 import {
+  PromptOrigin,
   fileExtension,
   fileNameExample1,
   fileNameExample2,
   fileNameExample3,
   fileNameTemplate,
-  PromptOrigin,
   promptsOutputDirectory,
 } from '../shared/constants.js';
+import type { recommendPromptTemplateTestsInputSchema } from './inputSchema.js';
 
 const promptTemplateKey = 'promptTemplate';
 const modelKey = 'model';

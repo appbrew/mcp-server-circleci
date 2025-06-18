@@ -1,0 +1,13 @@
+# OAuth configuration for Cloudflare Access
+ACCESS_CLIENT_ID=your-access-client-id
+ACCESS_CLIENT_SECRET=your-access-client-secret
+ACCESS_TOKEN_URL=https://your-domain.cloudflareaccess.com/cdn-cgi/access/token
+ACCESS_AUTHORIZATION_URL=https://your-domain.cloudflareaccess.com/cdn-cgi/access/authorize
+ACCESS_JWKS_URL=https://your-domain.cloudflareaccess.com/cdn-cgi/access/certs
+
+# Cookie encryption key (generate with: openssl rand -hex 32)
+COOKIE_ENCRYPTION_KEY=your-cookie-encryption-key
+
+# CircleCI configuration
+CIRCLECI_TOKEN=your-circleci-token
+CIRCLECI_BASE_URL=https://circleci.com

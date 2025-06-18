@@ -12,23 +12,21 @@ const contextSchemaSchema: z.ZodSchema<ContextSchema> = z.lazy(() =>
         z
           .enum(['string', 'number', 'boolean', 'date'])
           .describe('a primitive data type: string, number, boolean, or date'),
-      ]),
+      ])
     )
     .describe(
-      'a schema structure, mapping keys to a primitive type (string, number, boolean, or date) or recursively to a nested schema',
-    ),
+      'a schema structure, mapping keys to a primitive type (string, number, boolean, or date) or recursively to a nested schema'
+    )
 );
 
 const promptObjectSchema = z
   .object({
     template: z.string().describe('a mustache template string'),
     contextSchema: contextSchemaSchema.describe(
-      'an arbitrarily nested map of variable names from the mustache template to primitive types (string, number, or boolean)',
+      'an arbitrarily nested map of variable names from the mustache template to primitive types (string, number, or boolean)'
     ),
   })
-  .describe(
-    'a complete prompt template with a template string and a context schema',
-  );
+  .describe('a complete prompt template with a template string and a context schema');
 
 const RuleReviewSchema = z.object({
   isRuleCompliant: z.boolean(),
@@ -38,7 +36,7 @@ const RuleReviewSchema = z.object({
         rule: z.string(),
         reason: z.string(),
         confidenceScore: z.number(),
-      }),
+      })
     ),
     violations: z.array(
       z.object({
@@ -50,9 +48,9 @@ const RuleReviewSchema = z.object({
             lineNumbersInDiff: z.array(z.string()),
             violatingCodeSnippet: z.string(),
             explanationOfViolation: z.string(),
-          }),
+          })
         ),
-      }),
+      })
     ),
     requiresHumanReview: z.array(
       z.object({
@@ -63,7 +61,7 @@ const RuleReviewSchema = z.object({
           pointsOfAmbiguity: z.array(z.string()),
           questionsForManualReviewer: z.array(z.string()),
         }),
-      }),
+      })
     ),
   }),
   unrelatedRules: z.array(z.string()),
@@ -111,9 +109,9 @@ const JobDetailsSchema = z.object({
           index: z.number(),
           step: z.number(),
           failed: z.boolean().nullable(),
-        }),
+        })
       ),
-    }),
+    })
   ),
   workflows: z.object({
     job_name: z.string(),
@@ -124,7 +122,7 @@ const FlakyTestSchema = z.object({
   flaky_tests: z.array(
     z.object({
       job_number: z.number(),
-    }),
+    })
   ),
   total_flaky_tests: z.number(),
 });
@@ -149,7 +147,7 @@ const ConfigValidateSchema = z.object({
     .array(
       z.object({
         message: z.string(),
-      }),
+      })
     )
     .nullable(),
   'output-yaml': z.string(),
@@ -177,9 +175,7 @@ export const PipelineDefinition = PipelineDefinitionSchema;
 export type PipelineDefinition = z.infer<typeof PipelineDefinitionSchema>;
 
 export const PipelineDefinitionsResponse = PipelineDefinitionsResponseSchema;
-export type PipelineDefinitionsResponse = z.infer<
-  typeof PipelineDefinitionsResponseSchema
->;
+export type PipelineDefinitionsResponse = z.infer<typeof PipelineDefinitionsResponseSchema>;
 
 export const Test = TestSchema;
 export type Test = z.infer<typeof TestSchema>;
@@ -207,9 +203,7 @@ export const PaginatedPipelineResponseSchema = z.object({
   items: z.array(Pipeline),
   next_page_token: z.string().nullable(),
 });
-export type PaginatedPipelineResponse = z.infer<
-  typeof PaginatedPipelineResponseSchema
->;
+export type PaginatedPipelineResponse = z.infer<typeof PaginatedPipelineResponseSchema>;
 
 export const Workflow = WorkflowSchema;
 export type Workflow = z.infer<typeof WorkflowSchema>;

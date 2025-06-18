@@ -1,4 +1,4 @@
-import { Workflow } from '../../clients/schemas.js';
+import type { Workflow } from '../../clients/schemas.js';
 import outputTextTruncated, { SEPARATOR } from '../outputTextTruncated.js';
 
 export const formatLatestPipelineStatus = (workflows: Workflow[]) => {
@@ -21,9 +21,7 @@ export const formatLatestPipelineStatus = (workflows: Workflow[]) => {
       if (workflow.created_at && workflow.stopped_at) {
         const startTime = new Date(workflow.created_at).getTime();
         const endTime = new Date(workflow.stopped_at).getTime();
-        const durationInMinutes = Math.round(
-          (endTime - startTime) / (1000 * 60),
-        );
+        const durationInMinutes = Math.round((endTime - startTime) / (1000 * 60));
         duration = `${durationInMinutes} minutes`;
       }
 

@@ -1,6 +1,6 @@
+import gitUrlParse from 'parse-github-url';
 import { getCircleCIPrivateClient } from '../../clients/client.js';
 import { getVCSFromHost, vcses } from './vcsTool.js';
-import gitUrlParse from 'parse-github-url';
 
 /**
  * Identify the project slug from the git remote URL
@@ -24,16 +24,14 @@ export const identifyProjectSlug = async ({
     throw new Error(`VCS with host ${parsedGitURL.host} is not handled`);
   }
 
-  const { projects: followedProjects } =
-    await cciPrivateClients.me.getFollowedProjects();
+  const { projects: followedProjects } = await cciPrivateClients.me.getFollowedProjects();
   if (!followedProjects) {
     throw new Error('Failed to get followed projects');
   }
 
   const project = followedProjects.find(
     (followedProject) =>
-      followedProject.name === parsedGitURL.name &&
-      followedProject.vcs_type === vcs.name,
+      followedProject.name === parsedGitURL.name && followedProject.vcs_type === vcs.name
   );
 
   return project?.slug;
@@ -70,7 +68,7 @@ export const getPipelineNumberFromURL = (url: string): number | undefined => {
     return undefined;
   }
   const parsedNumber = Number(pipelineNumber);
-  if (isNaN(parsedNumber)) {
+  if (Number.isNaN(parsedNumber)) {
     throw new Error('Pipeline number in URL is not a valid number');
   }
   return parsedNumber;
@@ -107,7 +105,7 @@ export const getJobNumberFromURL = (url: string): number | undefined => {
       return undefined;
     }
     const parsedNumber = Number(jobNumber);
-    if (isNaN(parsedNumber)) {
+    if (Number.isNaN(parsedNumber)) {
       throw new Error('Job number in URL is not a valid number');
     }
     return parsedNumber;
@@ -128,7 +126,7 @@ export const getJobNumberFromURL = (url: string): number | undefined => {
   }
 
   const parsedNumber = Number(jobNumber);
-  if (isNaN(parsedNumber)) {
+  if (Number.isNaN(parsedNumber)) {
     throw new Error('Job number in URL is not a valid number');
   }
 
@@ -173,14 +171,12 @@ export const getProjectSlugFromURL = (url: string) => {
   }
 
   if (startIndex === -1) {
-    throw new Error(
-      'Error getting project slug from URL: Invalid CircleCI URL format',
-    );
+    throw new Error('Error getting project slug from URL: Invalid CircleCI URL format');
   }
 
   const [vcs, org, project] = parts.slice(
     startIndex,
-    startIndex + 3, // vcs/org/project
+    startIndex + 3 // vcs/org/project
   );
   if (!vcs || !org || !project) {
     throw new Error('Unable to extract project information from URL');
@@ -208,8 +204,6 @@ export const getBranchFromURL = (url: string): string | undefined => {
     const urlObj = new URL(url);
     return urlObj.searchParams.get('branch') || undefined;
   } catch {
-    throw new Error(
-      'Error getting branch from URL: Invalid CircleCI URL format',
-    );
+    throw new Error('Error getting branch from URL: Invalid CircleCI URL format');
   }
 };

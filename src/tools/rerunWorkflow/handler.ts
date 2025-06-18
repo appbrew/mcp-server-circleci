@@ -1,9 +1,9 @@
-import { ToolCallback } from '@modelcontextprotocol/sdk/server/mcp.js';
-import { rerunWorkflowInputSchema } from './inputSchema.js';
-import { getCircleCIClient } from '../../clients/client.js';
-import mcpErrorOutput from '../../lib/mcpErrorOutput.js';
+import type { ToolCallback } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { getAppURL } from '../../clients/circleci/index.js';
+import { getCircleCIClient } from '../../clients/client.js';
 import { getWorkflowIdFromURL } from '../../lib/getWorkflowIdFromURL.js';
+import mcpErrorOutput from '../../lib/mcpErrorOutput.js';
+import type { rerunWorkflowInputSchema } from './inputSchema.js';
 
 export const rerunWorkflow: ToolCallback<{
   params: typeof rerunWorkflowInputSchema;
@@ -18,9 +18,7 @@ export const rerunWorkflow: ToolCallback<{
   }
 
   if (!workflowId) {
-    return mcpErrorOutput(
-      'workflowId is required and could not be determined from workflowURL.',
-    );
+    return mcpErrorOutput('workflowId is required and could not be determined from workflowURL.');
   }
 
   const workflow = await circleci.workflows.getWorkflow({

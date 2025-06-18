@@ -1,10 +1,10 @@
+import { describe, expect, it } from 'vitest';
 import {
-  getPipelineNumberFromURL,
-  getProjectSlugFromURL,
   getBranchFromURL,
   getJobNumberFromURL,
+  getPipelineNumberFromURL,
+  getProjectSlugFromURL,
 } from './index.js';
-import { describe, it, expect } from 'vitest';
 
 describe('getPipelineNumberFromURL', () => {
   it.each([
@@ -43,16 +43,14 @@ describe('getPipelineNumberFromURL', () => {
   });
 
   it('should not throw error for invalid CircleCI URL format. Returns undefined for pipeline number', () => {
-    expect(() =>
-      getPipelineNumberFromURL('https://app.circleci.com/invalid/url'),
-    ).not.toThrow();
+    expect(() => getPipelineNumberFromURL('https://app.circleci.com/invalid/url')).not.toThrow();
   });
 
   it('throws error when pipeline number is not a valid number', () => {
     expect(() =>
       getPipelineNumberFromURL(
-        'https://app.circleci.com/pipelines/gh/organization/project/abc/workflows/abc123de-f456-78gh-90ij-klmnopqrstuv',
-      ),
+        'https://app.circleci.com/pipelines/gh/organization/project/abc/workflows/abc123de-f456-78gh-90ij-klmnopqrstuv'
+      )
     ).toThrow('Pipeline number in URL is not a valid number');
   });
 });
@@ -134,17 +132,15 @@ describe('getProjectSlugFromURL', () => {
   });
 
   it('throws error for invalid CircleCI URL format', () => {
-    expect(() =>
-      getProjectSlugFromURL('https://app.circleci.com/invalid/url'),
-    ).toThrow(
-      'Error getting project slug from URL: Invalid CircleCI URL format',
+    expect(() => getProjectSlugFromURL('https://app.circleci.com/invalid/url')).toThrow(
+      'Error getting project slug from URL: Invalid CircleCI URL format'
     );
   });
 
   it('throws error when project information is incomplete', () => {
-    expect(() =>
-      getProjectSlugFromURL('https://app.circleci.com/pipelines/gh'),
-    ).toThrow('Unable to extract project information from URL');
+    expect(() => getProjectSlugFromURL('https://app.circleci.com/pipelines/gh')).toThrow(
+      'Unable to extract project information from URL'
+    );
   });
 });
 
@@ -176,7 +172,7 @@ describe('getBranchFromURL', () => {
 
   it('throws error for invalid CircleCI URL format', () => {
     expect(() => getBranchFromURL('not-a-url')).toThrow(
-      'Error getting branch from URL: Invalid CircleCI URL format',
+      'Error getting branch from URL: Invalid CircleCI URL format'
     );
   });
 });
@@ -225,8 +221,8 @@ describe('getJobNumberFromURL', () => {
   it('throws error when job number is not a valid number', () => {
     expect(() =>
       getJobNumberFromURL(
-        'https://app.circleci.com/pipelines/gh/organization/project/123/workflows/abc123de-f456-78gh-90ij-klmnopqrstuv/jobs/abc',
-      ),
+        'https://app.circleci.com/pipelines/gh/organization/project/123/workflows/abc123de-f456-78gh-90ij-klmnopqrstuv/jobs/abc'
+      )
     ).toThrow('Job number in URL is not a valid number');
   });
 });

@@ -1,6 +1,6 @@
-import { ToolCallback } from '@modelcontextprotocol/sdk/server/mcp.js';
-import { configHelperInputSchema } from './inputSchema.js';
+import type { ToolCallback } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { getCircleCIClient } from '../../clients/client.js';
+import type { configHelperInputSchema } from './inputSchema.js';
 
 export const configHelper: ToolCallback<{
   params: typeof configHelperInputSchema;

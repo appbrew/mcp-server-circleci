@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { HTTPClient } from '../circleci/httpClient.js';
+import type { HTTPClient } from '../circleci/httpClient.js';
 
 const JobOutputResponseSchema = z.string();
 
@@ -36,13 +36,13 @@ export class JobsPrivate {
   }) {
     // /api/private/output/raw/:vcs/:user/:prj/:num/output/:task_index/:step_id
     const outputResult = await this.client.get<JobOutputResponse>(
-      `/output/raw/${projectSlug}/${jobNumber}/output/${taskIndex}/${stepId}`,
+      `/output/raw/${projectSlug}/${jobNumber}/output/${taskIndex}/${stepId}`
     );
     const parsedOutput = JobOutputResponseSchema.safeParse(outputResult);
 
     // /api/private/output/raw/:vcs/:user/:prj/:num/error/:task_index/:step_id
     const errorResult = await this.client.get<JobErrorResponse>(
-      `/output/raw/${projectSlug}/${jobNumber}/error/${taskIndex}/${stepId}`,
+      `/output/raw/${projectSlug}/${jobNumber}/error/${taskIndex}/${stepId}`
     );
     const parsedError = JobErrorResponseSchema.safeParse(errorResult);
 

@@ -1,16 +1,14 @@
 #!/usr/bin/env node
 
-import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
-import { CCI_HANDLERS, CCI_TOOLS, ToolHandler } from './circleci-tools.js';
-import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
+import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
+import { CCI_HANDLERS, CCI_TOOLS, type ToolHandler } from './circleci-tools.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const packageJson = JSON.parse(
-  fs.readFileSync(path.join(__dirname, '../package.json'), 'utf8'),
-);
+const packageJson = JSON.parse(fs.readFileSync(path.join(__dirname, '../package.json'), 'utf8'));
 
 const server = new McpServer(
   {
@@ -22,7 +20,7 @@ const server = new McpServer(
       tools: {},
       resources: {},
     },
-  },
+  }
 );
 
 // Register tools
@@ -36,7 +34,7 @@ CCI_TOOLS.forEach((tool) => {
     tool.name,
     tool.description,
     { params: tool.inputSchema },
-    handler as ToolHandler<typeof tool.name>,
+    handler as ToolHandler<typeof tool.name>
   );
 });
 

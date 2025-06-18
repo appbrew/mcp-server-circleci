@@ -1,7 +1,7 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { analyzeDiff } from './handler.js';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { CircletClient } from '../../clients/circlet/index.js';
-import { RuleReview } from '../../clients/schemas.js';
+import type { RuleReview } from '../../clients/schemas.js';
+import { analyzeDiff } from './handler.js';
 
 // Mock the CircletClient
 vi.mock('../../clients/circlet/index.js');
@@ -18,9 +18,7 @@ describe('analyzeDiff', () => {
       },
     };
 
-    vi.mocked(CircletClient).mockImplementation(
-      () => mockCircletInstance as any,
-    );
+    vi.mocked(CircletClient).mockImplementation(() => mockCircletInstance as any);
 
     const mockArgs = {
       params: {
@@ -49,9 +47,7 @@ describe('analyzeDiff', () => {
       },
     };
 
-    vi.mocked(CircletClient).mockImplementation(
-      () => mockCircletInstance as any,
-    );
+    vi.mocked(CircletClient).mockImplementation(() => mockCircletInstance as any);
 
     const mockArgs = {
       params: {
@@ -96,9 +92,7 @@ describe('analyzeDiff', () => {
       },
     };
 
-    vi.mocked(CircletClient).mockImplementation(
-      () => mockCircletInstance as any,
-    );
+    vi.mocked(CircletClient).mockImplementation(() => mockCircletInstance as any);
 
     const mockArgs = {
       params: {
@@ -170,9 +164,7 @@ Rule 4: All functions must have JSDoc comments`,
       },
     };
 
-    vi.mocked(CircletClient).mockImplementation(
-      () => mockCircletInstance as any,
-    );
+    vi.mocked(CircletClient).mockImplementation(() => mockCircletInstance as any);
 
     const mockArgs = {
       params: {
@@ -197,9 +189,7 @@ Description: Avoid using 'any' type.`,
 
     expect(result.content[0].type).toBe('text');
     expect(result.content[0].text).toContain('Rule: No Console Logs');
-    expect(result.content[0].text).toContain(
-      'Reason: Console.log statements found in code',
-    );
+    expect(result.content[0].text).toContain('Reason: Console.log statements found in code');
     expect(result.content[0].text).toContain('Confidence Score: 0.98');
   });
 
@@ -226,9 +216,7 @@ Description: Avoid using 'any' type.`,
       },
     };
 
-    vi.mocked(CircletClient).mockImplementation(
-      () => mockCircletInstance as any,
-    );
+    vi.mocked(CircletClient).mockImplementation(() => mockCircletInstance as any);
 
     const mockArgs = {
       params: {
@@ -297,9 +285,7 @@ Description: Avoid using 'any' type.`,
       },
     };
 
-    vi.mocked(CircletClient).mockImplementation(
-      () => mockCircletInstance as any,
-    );
+    vi.mocked(CircletClient).mockImplementation(() => mockCircletInstance as any);
 
     const mockArgs = {
       params: {
@@ -375,9 +361,7 @@ Confidence Score: 0.92`,
       },
     };
 
-    vi.mocked(CircletClient).mockImplementation(
-      () => mockCircletInstance as any,
-    );
+    vi.mocked(CircletClient).mockImplementation(() => mockCircletInstance as any);
 
     const mockArgs = {
       params: {

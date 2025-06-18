@@ -1,5 +1,5 @@
 import { FlakyTest } from '../schemas.js';
-import { HTTPClient } from './httpClient.js';
+import type { HTTPClient } from './httpClient.js';
 
 export class InsightsAPI {
   protected client: HTTPClient;
@@ -20,9 +20,7 @@ export class InsightsAPI {
   }: {
     projectSlug: string;
   }): Promise<FlakyTest> {
-    const rawResult = await this.client.get<unknown>(
-      `/insights/${projectSlug}/flaky-tests`,
-    );
+    const rawResult = await this.client.get<unknown>(`/insights/${projectSlug}/flaky-tests`);
 
     const parsedResult = FlakyTest.safeParse(rawResult);
 

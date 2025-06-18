@@ -1,8 +1,8 @@
 import { HTTPClient } from '../circleci/httpClient.js';
 import { createCircleCIHeaders } from '../circleci/index.js';
+import { getBaseURL } from '../circleci/index.js';
 import { JobsPrivate } from './jobsPrivate.js';
 import { MeAPI } from './me.js';
-import { getBaseURL } from '../circleci/index.js';
 
 /**
  * Creates a default HTTP client for the CircleCI API private

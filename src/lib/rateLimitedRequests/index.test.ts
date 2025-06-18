@@ -1,4 +1,4 @@
-import { describe, test, expect, vi, beforeAll } from 'vitest';
+import { beforeAll, describe, expect, test, vi } from 'vitest';
 import { rateLimitedRequests } from '.';
 
 type MockResponse = {
@@ -11,20 +11,17 @@ const mockFetch = (url: string): Promise<MockResponse> => {
     ok: true,
     json: () => {
       const params = url.split('?')[1].split('&');
-      const paramsMap = params.reduce<Record<string, string | string[]>>(
-        (map, paramPair) => {
-          const values = paramPair.split('=');
-          if (map[values[0]] && Array.isArray(map[values[0]])) {
-            (map[values[0]] as string[]).push(values[1]);
-          } else if (map[values[0]] && !Array.isArray(map[values[0]])) {
-            map[values[0]] = [map[values[0]] as string, values[1]];
-          } else {
-            map[values[0]] = values[1];
-          }
-          return map;
-        },
-        {},
-      );
+      const paramsMap = params.reduce<Record<string, string | string[]>>((map, paramPair) => {
+        const values = paramPair.split('=');
+        if (map[values[0]] && Array.isArray(map[values[0]])) {
+          (map[values[0]] as string[]).push(values[1]);
+        } else if (map[values[0]] && !Array.isArray(map[values[0]])) {
+          map[values[0]] = [map[values[0]] as string, values[1]];
+        } else {
+          map[values[0]] = values[1];
+        }
+        return map;
+      }, {});
       return Promise.resolve({ args: paramsMap });
     },
   });
@@ -37,43 +34,35 @@ beforeAll(() => {
 
 const maxRetries = 2;
 const retryDelayInMillis = 500;
-const requestURL = `https://httpbin.org/get`;
+const requestURL = 'https://httpbin.org/get';
 
 // Helper functions
 function generateRequests(numberOfRequests: number): (() => Promise<any>)[] {
-  return Array.from(
-    { length: numberOfRequests },
-    (_, i) => () => makeRequest(i),
-  );
+  return Array.from({ length: numberOfRequests }, (_, i) => () => makeRequest(i));
 }
 
 async function makeRequest(
   requestId: number,
-  attempt = 1,
+  attempt = 1
 ): Promise<{ args: any } | { error: any }> {
   try {
-    const response = await mockFetch(requestURL + '?id=' + requestId);
+    const response = await mockFetch(`${requestURL}?id=${requestId}`);
     if (!response.ok) {
-      throw new Error(`HTTP error occurred`);
+      throw new Error('HTTP error occurred');
     }
     return await response.json();
   } catch (error) {
     if (attempt <= maxRetries) {
       await new Promise((resolve) => setTimeout(resolve, retryDelayInMillis));
       return makeRequest(requestId, attempt + 1);
-    } else {
-      return {
-        error: error instanceof Error ? error.toString() : String(error),
-      };
     }
+    return {
+      error: error instanceof Error ? error.toString() : String(error),
+    };
   }
 }
 
-function isResponseContainData(
-  result: any[],
-  startIndex: number,
-  endIndex: number,
-): boolean {
+function isResponseContainData(result: any[], startIndex: number, endIndex: number): boolean {
   for (let i = startIndex; i <= endIndex; i++) {
     const resultItem = JSON.stringify(result[i - startIndex]);
     if (!resultItem || !resultItem.includes(`{"args":{"id":"${i}"}`)) {
@@ -86,13 +75,13 @@ function isResponseContainData(
 function isBatchResponseContainData(
   batchItems: any[],
   startIndex: number,
-  endIndex: number,
+  endIndex: number
 ): boolean {
   return batchItems.some(
     (batchItem) =>
       batchItem.startIndex === startIndex &&
       batchItem.stopIndex === endIndex &&
-      isResponseContainData(batchItem.results, startIndex, endIndex),
+      isResponseContainData(batchItem.results, startIndex, endIndex)
   );
 }
 
@@ -100,7 +89,7 @@ function checkProgressItems(
   progressItems: any[],
   maxRequests: number,
   totalRequests: number,
-  expectedProgressItemsCount: number,
+  expectedProgressItemsCount: number
 ): void {
   expect(progressItems.length).toBe(expectedProgressItemsCount);
   for (let i = 0; i < expectedProgressItemsCount; i++) {
@@ -109,25 +98,15 @@ function checkProgressItems(
   }
 }
 
-function checkBatchItems(
-  batchItems: any[],
-  batchSize: number,
-  totalRequests: number,
-): void {
+function checkBatchItems(batchItems: any[], batchSize: number, totalRequests: number): void {
   expect(batchItems.length).toBe(Math.ceil(totalRequests / batchSize));
   for (const batch of batchItems) {
     const expectedSize = Math.min(batchSize, totalRequests - batch.startIndex);
     expect(batch.results.length).toBe(expectedSize);
-    const result = isResponseContainData(
-      batch.results,
-      batch.startIndex,
-      batch.stopIndex,
-    );
+    const result = isResponseContainData(batch.results, batch.startIndex, batch.stopIndex);
     if (!result) {
-      console.log('items ' + JSON.stringify(batchItems));
-      console.log(
-        `startIndex ${batch.startIndex}, endIndex ${batch.stopIndex}`,
-      );
+      console.log(`items ${JSON.stringify(batchItems)}`);
+      console.log(`startIndex ${batch.startIndex}, endIndex ${batch.stopIndex}`);
     }
     expect(result).toBe(true);
   }
@@ -144,7 +123,7 @@ function createOptions(
     startIndex: number;
     stopIndex: number;
     results: any[];
-  }) => void,
+  }) => void
 ) {
   return { batchSize, onProgress, onBatchComplete };
 }
@@ -152,12 +131,7 @@ function createOptions(
 describe('rateLimitedRequests', () => {
   test('execute 50 requests', async () => {
     const requests = generateRequests(50);
-    const result = await rateLimitedRequests(
-      requests,
-      25,
-      1000,
-      createOptions(),
-    );
+    const result = await rateLimitedRequests(requests, 25, 1000, createOptions());
 
     expect(result.length).toBe(50);
     expect(isResponseContainData(result, 0, 49)).toBe(true);
@@ -175,8 +149,8 @@ describe('rateLimitedRequests', () => {
       createOptions(
         50,
         (progress) => progressItems.push(progress),
-        (batch) => batchItems.push(batch),
-      ),
+        (batch) => batchItems.push(batch)
+      )
     );
 
     expect(result.length).toBe(1000);
@@ -185,9 +159,7 @@ describe('rateLimitedRequests', () => {
 
     for (const batch of batchItems) {
       expect(batch.results.length).toBe(50);
-      expect(
-        isResponseContainData(batch.results, batch.startIndex, batch.stopIndex),
-      ).toBe(true);
+      expect(isResponseContainData(batch.results, batch.startIndex, batch.stopIndex)).toBe(true);
     }
 
     checkProgressItems(progressItems, 100, 1000, 10);
@@ -202,7 +174,7 @@ describe('rateLimitedRequests', () => {
         requests,
         25,
         1000,
-        createOptions(10, undefined, (batch) => batchItems.push(batch)),
+        createOptions(10, undefined, (batch) => batchItems.push(batch))
       );
 
       expect(result.length).toBe(50);
@@ -218,7 +190,7 @@ describe('rateLimitedRequests', () => {
         requests,
         25,
         1000,
-        createOptions(60, undefined, (batch) => batchItems.push(batch)),
+        createOptions(60, undefined, (batch) => batchItems.push(batch))
       );
 
       expect(result.length).toBe(50);
@@ -234,7 +206,7 @@ describe('rateLimitedRequests', () => {
         requests,
         25,
         1000,
-        createOptions(50, undefined, (batch) => batchItems.push(batch)),
+        createOptions(50, undefined, (batch) => batchItems.push(batch))
       );
 
       expect(result.length).toBe(50);
@@ -250,7 +222,7 @@ describe('rateLimitedRequests', () => {
         requests,
         25,
         1000,
-        createOptions(50, (progress) => progressItems.push(progress)),
+        createOptions(50, (progress) => progressItems.push(progress))
       );
 
       expect(result.length).toBe(50);
@@ -267,7 +239,7 @@ describe('rateLimitedRequests', () => {
         requests,
         10,
         1000,
-        createOptions(10, undefined, (batch) => batchItems.push(batch)),
+        createOptions(10, undefined, (batch) => batchItems.push(batch))
       );
 
       expect(result.length).toBe(30);
@@ -285,7 +257,7 @@ describe('rateLimitedRequests', () => {
         requests,
         10,
         1000,
-        createOptions(10, undefined, (batch) => batchItems.push(batch)),
+        createOptions(10, undefined, (batch) => batchItems.push(batch))
       );
 
       expect(result.length).toBe(25);
@@ -303,7 +275,7 @@ describe('rateLimitedRequests', () => {
         requests,
         10,
         1000,
-        createOptions(undefined, (progress) => progressItems.push(progress)),
+        createOptions(undefined, (progress) => progressItems.push(progress))
       );
 
       expect(result.length).toBe(25);
@@ -330,12 +302,7 @@ describe('rateLimitedRequests', () => {
 
     test('should handle empty batch size gracefully', async () => {
       const requests = generateRequests(5);
-      const result = await rateLimitedRequests(
-        requests,
-        25,
-        1000,
-        createOptions(0),
-      );
+      const result = await rateLimitedRequests(requests, 25, 1000, createOptions(0));
       expect(result.length).toBe(5);
     });
   });

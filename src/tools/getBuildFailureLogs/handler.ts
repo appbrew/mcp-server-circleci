@@ -1,15 +1,15 @@
-import { ToolCallback } from '@modelcontextprotocol/sdk/server/mcp.js';
+import type { ToolCallback } from '@modelcontextprotocol/sdk/server/mcp.js';
+import mcpErrorOutput from '../../lib/mcpErrorOutput.js';
+import { formatJobLogs } from '../../lib/pipeline-job-logs/getJobLogs.js';
+import getPipelineJobLogs from '../../lib/pipeline-job-logs/getPipelineJobLogs.js';
 import {
+  getBranchFromURL,
+  getJobNumberFromURL,
   getPipelineNumberFromURL,
   getProjectSlugFromURL,
-  getBranchFromURL,
   identifyProjectSlug,
-  getJobNumberFromURL,
 } from '../../lib/project-detection/index.js';
-import { getBuildFailureOutputInputSchema } from './inputSchema.js';
-import getPipelineJobLogs from '../../lib/pipeline-job-logs/getPipelineJobLogs.js';
-import { formatJobLogs } from '../../lib/pipeline-job-logs/getJobLogs.js';
-import mcpErrorOutput from '../../lib/mcpErrorOutput.js';
+import type { getBuildFailureOutputInputSchema } from './inputSchema.js';
 export const getBuildFailureLogs: ToolCallback<{
   params: typeof getBuildFailureOutputInputSchema;
 }> = async (args) => {
@@ -29,7 +29,7 @@ export const getBuildFailureLogs: ToolCallback<{
   if (inputProjectSlug) {
     if (!branch) {
       return mcpErrorOutput(
-        'Branch not provided. When using projectSlug, a branch must also be specified.',
+        'Branch not provided. When using projectSlug, a branch must also be specified.'
       );
     }
     projectSlug = inputProjectSlug;
@@ -44,7 +44,7 @@ export const getBuildFailureLogs: ToolCallback<{
     });
   } else {
     return mcpErrorOutput(
-      'Missing required inputs. Please provide either: 1) projectSlug with branch, 2) projectURL, or 3) workspaceRoot with gitRemoteURL and branch.',
+      'Missing required inputs. Please provide either: 1) projectSlug with branch, 2) projectURL, or 3) workspaceRoot with gitRemoteURL and branch.'
     );
   }
 

@@ -1,5 +1,5 @@
 import { ConfigValidate } from '../schemas.js';
-import { HTTPClient } from './httpClient.js';
+import type { HTTPClient } from './httpClient.js';
 
 export class ConfigValidateAPI {
   protected client: HTTPClient;
@@ -20,10 +20,9 @@ export class ConfigValidateAPI {
   }: {
     config: string;
   }): Promise<ConfigValidate> {
-    const rawResult = await this.client.post<unknown>(
-      `/compile-config-with-defaults`,
-      { config_yaml: config },
-    );
+    const rawResult = await this.client.post<unknown>('/compile-config-with-defaults', {
+      config_yaml: config,
+    });
 
     const parsedResult = ConfigValidate.safeParse(rawResult);
 

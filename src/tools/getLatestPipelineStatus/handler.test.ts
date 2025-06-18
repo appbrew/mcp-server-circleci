@@ -1,9 +1,9 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { getLatestPipelineStatus } from './handler.js';
-import * as projectDetection from '../../lib/project-detection/index.js';
-import * as getLatestPipelineWorkflowsModule from '../../lib/latest-pipeline/getLatestPipelineWorkflows.js';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import * as formatLatestPipelineStatusModule from '../../lib/latest-pipeline/formatLatestPipelineStatus.js';
-import { McpSuccessResponse } from '../../lib/mcpResponse.js';
+import * as getLatestPipelineWorkflowsModule from '../../lib/latest-pipeline/getLatestPipelineWorkflows.js';
+import type { McpSuccessResponse } from '../../lib/mcpResponse.js';
+import * as projectDetection from '../../lib/project-detection/index.js';
+import { getLatestPipelineStatus } from './handler.js';
 
 // Mock dependencies
 vi.mock('../../lib/project-detection/index.js');
@@ -36,26 +36,21 @@ describe('getLatestPipelineStatus handler', () => {
     vi.resetAllMocks();
 
     // Setup default mocks
-    vi.mocked(projectDetection.getProjectSlugFromURL).mockReturnValue(
-      'gh/circleci/project',
-    );
+    vi.mocked(projectDetection.getProjectSlugFromURL).mockReturnValue('gh/circleci/project');
     vi.mocked(projectDetection.getBranchFromURL).mockReturnValue('main');
-    vi.mocked(projectDetection.identifyProjectSlug).mockResolvedValue(
-      'gh/circleci/project',
+    vi.mocked(projectDetection.identifyProjectSlug).mockResolvedValue('gh/circleci/project');
+    vi.mocked(getLatestPipelineWorkflowsModule.getLatestPipelineWorkflows).mockResolvedValue(
+      mockWorkflows
     );
-    vi.mocked(
-      getLatestPipelineWorkflowsModule.getLatestPipelineWorkflows,
-    ).mockResolvedValue(mockWorkflows);
-    vi.mocked(
-      formatLatestPipelineStatusModule.formatLatestPipelineStatus,
-    ).mockReturnValue(mockFormattedResponse);
+    vi.mocked(formatLatestPipelineStatusModule.formatLatestPipelineStatus).mockReturnValue(
+      mockFormattedResponse
+    );
   });
 
   it('should get latest pipeline status using projectURL', async () => {
     const args = {
       params: {
-        projectURL:
-          'https://app.circleci.com/pipelines/github/circleci/project',
+        projectURL: 'https://app.circleci.com/pipelines/github/circleci/project',
       },
     };
 
@@ -64,21 +59,15 @@ describe('getLatestPipelineStatus handler', () => {
       signal: controller.signal,
     });
 
-    expect(projectDetection.getProjectSlugFromURL).toHaveBeenCalledWith(
-      args.params.projectURL,
-    );
-    expect(projectDetection.getBranchFromURL).toHaveBeenCalledWith(
-      args.params.projectURL,
-    );
-    expect(
-      getLatestPipelineWorkflowsModule.getLatestPipelineWorkflows,
-    ).toHaveBeenCalledWith({
+    expect(projectDetection.getProjectSlugFromURL).toHaveBeenCalledWith(args.params.projectURL);
+    expect(projectDetection.getBranchFromURL).toHaveBeenCalledWith(args.params.projectURL);
+    expect(getLatestPipelineWorkflowsModule.getLatestPipelineWorkflows).toHaveBeenCalledWith({
       projectSlug: 'gh/circleci/project',
       branch: 'main',
     });
-    expect(
-      formatLatestPipelineStatusModule.formatLatestPipelineStatus,
-    ).toHaveBeenCalledWith(mockWorkflows);
+    expect(formatLatestPipelineStatusModule.formatLatestPipelineStatus).toHaveBeenCalledWith(
+      mockWorkflows
+    );
     expect(response).toEqual(mockFormattedResponse);
   });
 
@@ -119,15 +108,13 @@ describe('getLatestPipelineStatus handler', () => {
     expect(projectDetection.identifyProjectSlug).toHaveBeenCalledWith({
       gitRemoteURL: args.params.gitRemoteURL,
     });
-    expect(
-      getLatestPipelineWorkflowsModule.getLatestPipelineWorkflows,
-    ).toHaveBeenCalledWith({
+    expect(getLatestPipelineWorkflowsModule.getLatestPipelineWorkflows).toHaveBeenCalledWith({
       projectSlug: 'gh/circleci/project',
       branch: 'feature/branch',
     });
-    expect(
-      formatLatestPipelineStatusModule.formatLatestPipelineStatus,
-    ).toHaveBeenCalledWith(mockWorkflows);
+    expect(formatLatestPipelineStatusModule.formatLatestPipelineStatus).toHaveBeenCalledWith(
+      mockWorkflows
+    );
     expect(response).toEqual(mockFormattedResponse);
   });
 
@@ -148,15 +135,13 @@ describe('getLatestPipelineStatus handler', () => {
     expect(projectDetection.getProjectSlugFromURL).not.toHaveBeenCalled();
     expect(projectDetection.identifyProjectSlug).not.toHaveBeenCalled();
 
-    expect(
-      getLatestPipelineWorkflowsModule.getLatestPipelineWorkflows,
-    ).toHaveBeenCalledWith({
+    expect(getLatestPipelineWorkflowsModule.getLatestPipelineWorkflows).toHaveBeenCalledWith({
       projectSlug: 'gh/circleci/project',
       branch: 'feature/branch',
     });
-    expect(
-      formatLatestPipelineStatusModule.formatLatestPipelineStatus,
-    ).toHaveBeenCalledWith(mockWorkflows);
+    expect(formatLatestPipelineStatusModule.formatLatestPipelineStatus).toHaveBeenCalledWith(
+      mockWorkflows
+    );
     expect(response).toEqual(mockFormattedResponse);
   });
 
@@ -177,9 +162,7 @@ describe('getLatestPipelineStatus handler', () => {
 
   it('should return error when project slug cannot be identified', async () => {
     // Return null to simulate project not found
-    vi.mocked(projectDetection.identifyProjectSlug).mockResolvedValue(
-      null as unknown as string,
-    );
+    vi.mocked(projectDetection.identifyProjectSlug).mockResolvedValue(null as unknown as string);
 
     const args = {
       params: {
@@ -202,8 +185,7 @@ describe('getLatestPipelineStatus handler', () => {
   it('should get pipeline status when branch is provided from URL but not in params', async () => {
     const args = {
       params: {
-        projectURL:
-          'https://app.circleci.com/pipelines/github/circleci/project?branch=develop',
+        projectURL: 'https://app.circleci.com/pipelines/github/circleci/project?branch=develop',
       },
     };
 
@@ -212,9 +194,7 @@ describe('getLatestPipelineStatus handler', () => {
       signal: controller.signal,
     });
 
-    expect(
-      getLatestPipelineWorkflowsModule.getLatestPipelineWorkflows,
-    ).toHaveBeenCalledWith({
+    expect(getLatestPipelineWorkflowsModule.getLatestPipelineWorkflows).toHaveBeenCalledWith({
       projectSlug: 'gh/circleci/project',
       branch: 'main', // This is what our mock returns
     });
@@ -222,21 +202,20 @@ describe('getLatestPipelineStatus handler', () => {
   });
 
   it('should handle errors from getLatestPipelineWorkflows', async () => {
-    vi.mocked(
-      getLatestPipelineWorkflowsModule.getLatestPipelineWorkflows,
-    ).mockRejectedValue(new Error('Failed to fetch workflows'));
+    vi.mocked(getLatestPipelineWorkflowsModule.getLatestPipelineWorkflows).mockRejectedValue(
+      new Error('Failed to fetch workflows')
+    );
 
     const args = {
       params: {
-        projectURL:
-          'https://app.circleci.com/pipelines/github/circleci/project',
+        projectURL: 'https://app.circleci.com/pipelines/github/circleci/project',
       },
     };
 
     // We expect the handler to throw the error so we can catch it
     const controller = new AbortController();
     await expect(
-      getLatestPipelineStatus(args as any, { signal: controller.signal }),
+      getLatestPipelineStatus(args as any, { signal: controller.signal })
     ).rejects.toThrow('Failed to fetch workflows');
   });
 });

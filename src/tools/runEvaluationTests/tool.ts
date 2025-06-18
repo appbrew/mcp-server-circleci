@@ -1,7 +1,4 @@
-import {
-  option1DescriptionBranchRequired,
-  promptsOutputDirectory,
-} from '../shared/constants.js';
+import { option1DescriptionBranchRequired, promptsOutputDirectory } from '../shared/constants.js';
 import { runEvaluationTestsInputSchema } from './inputSchema.js';
 
 export const runEvaluationTestsTool = {

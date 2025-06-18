@@ -1,7 +1,7 @@
 import { getCircleCIClient } from '../../clients/client.js';
-import { Test } from '../../clients/schemas.js';
-import { rateLimitedRequests } from '../rateLimitedRequests/index.js';
+import type { Test } from '../../clients/schemas.js';
 import outputTextTruncated, { SEPARATOR } from '../outputTextTruncated.js';
+import { rateLimitedRequests } from '../rateLimitedRequests/index.js';
 
 const getFlakyTests = async ({ projectSlug }: { projectSlug: string }) => {
   const circleci = getCircleCIClient();
@@ -27,13 +27,14 @@ const getFlakyTests = async ({ projectSlug }: { projectSlug: string }) => {
         if (error instanceof Error && error.message.includes('404')) {
           console.error(`Job ${jobNumber} not found:`, error);
           return [];
-        } else if (error instanceof Error && error.message.includes('429')) {
+        }
+        if (error instanceof Error && error.message.includes('429')) {
           console.error(`Rate limited for job request ${jobNumber}:`, error);
           return [];
         }
         throw error;
       }
-    }),
+    })
   );
 
   return testsArrays.flat().filter((test) => test.result === 'failure');

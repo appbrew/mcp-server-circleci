@@ -1,8 +1,8 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { getJobTestResults } from './handler.js';
-import * as projectDetection from '../../lib/project-detection/index.js';
-import * as getJobTestsModule from '../../lib/pipeline-job-tests/getJobTests.js';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import * as formatJobTestsModule from '../../lib/pipeline-job-tests/formatJobTests.js';
+import * as getJobTestsModule from '../../lib/pipeline-job-tests/getJobTests.js';
+import * as projectDetection from '../../lib/project-detection/index.js';
+import { getJobTestResults } from './handler.js';
 
 // Mock dependencies
 vi.mock('../../lib/project-detection/index.js');
@@ -32,9 +32,7 @@ describe('getJobTestResults handler', () => {
   });
 
   it('should return a valid MCP error response when project is not found', async () => {
-    vi.spyOn(projectDetection, 'identifyProjectSlug').mockResolvedValue(
-      undefined,
-    );
+    vi.spyOn(projectDetection, 'identifyProjectSlug').mockResolvedValue(undefined);
 
     const args = {
       params: {
@@ -77,9 +75,7 @@ describe('getJobTestResults handler', () => {
   });
 
   it('should return a valid MCP success response with test results for a specific job', async () => {
-    vi.spyOn(projectDetection, 'getProjectSlugFromURL').mockReturnValue(
-      'gh/org/repo',
-    );
+    vi.spyOn(projectDetection, 'getProjectSlugFromURL').mockReturnValue('gh/org/repo');
     vi.spyOn(projectDetection, 'getJobNumberFromURL').mockReturnValue(123);
 
     const mockTests = [
@@ -106,8 +102,7 @@ describe('getJobTestResults handler', () => {
 
     const args = {
       params: {
-        projectURL:
-          'https://app.circleci.com/pipelines/gh/org/repo/123/workflows/abc-def/jobs/123',
+        projectURL: 'https://app.circleci.com/pipelines/gh/org/repo/123/workflows/abc-def/jobs/123',
       },
     } as any;
 
@@ -176,9 +171,7 @@ describe('getJobTestResults handler', () => {
   });
 
   it('should return a valid MCP success response with test results for a branch', async () => {
-    vi.spyOn(projectDetection, 'identifyProjectSlug').mockResolvedValue(
-      'gh/org/repo',
-    );
+    vi.spyOn(projectDetection, 'identifyProjectSlug').mockResolvedValue('gh/org/repo');
 
     const mockTests = [
       {
@@ -228,9 +221,7 @@ describe('getJobTestResults handler', () => {
   });
 
   it('should filter test results by success when filterByTestsResult is success', async () => {
-    vi.spyOn(projectDetection, 'getProjectSlugFromURL').mockReturnValue(
-      'gh/org/repo',
-    );
+    vi.spyOn(projectDetection, 'getProjectSlugFromURL').mockReturnValue('gh/org/repo');
     vi.spyOn(projectDetection, 'getJobNumberFromURL').mockReturnValue(123);
 
     const mockTests = [
@@ -273,8 +264,7 @@ describe('getJobTestResults handler', () => {
 
     const args = {
       params: {
-        projectURL:
-          'https://app.circleci.com/pipelines/gh/org/repo/123/workflows/abc-def/jobs/123',
+        projectURL: 'https://app.circleci.com/pipelines/gh/org/repo/123/workflows/abc-def/jobs/123',
         filterByTestsResult: 'success',
       },
     } as any;
@@ -298,9 +288,7 @@ describe('getJobTestResults handler', () => {
   });
 
   it('should filter test results by failure when filterByTestsResult is failure', async () => {
-    vi.spyOn(projectDetection, 'getProjectSlugFromURL').mockReturnValue(
-      'gh/org/repo',
-    );
+    vi.spyOn(projectDetection, 'getProjectSlugFromURL').mockReturnValue('gh/org/repo');
     vi.spyOn(projectDetection, 'getJobNumberFromURL').mockReturnValue(123);
 
     const mockTests = [
@@ -343,8 +331,7 @@ describe('getJobTestResults handler', () => {
 
     const args = {
       params: {
-        projectURL:
-          'https://app.circleci.com/pipelines/gh/org/repo/123/workflows/abc-def/jobs/123',
+        projectURL: 'https://app.circleci.com/pipelines/gh/org/repo/123/workflows/abc-def/jobs/123',
         filterByTestsResult: 'failure',
       },
     } as any;

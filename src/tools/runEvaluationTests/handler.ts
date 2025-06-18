@@ -1,13 +1,13 @@
-import { ToolCallback } from '@modelcontextprotocol/sdk/server/mcp.js';
-import { gzipSync } from 'zlib';
+import { gzipSync } from 'node:zlib';
+import type { ToolCallback } from '@modelcontextprotocol/sdk/server/mcp.js';
+import { getCircleCIClient } from '../../clients/client.js';
+import mcpErrorOutput from '../../lib/mcpErrorOutput.js';
 import {
   getBranchFromURL,
   getProjectSlugFromURL,
   identifyProjectSlug,
 } from '../../lib/project-detection/index.js';
-import { runEvaluationTestsInputSchema } from './inputSchema.js';
-import mcpErrorOutput from '../../lib/mcpErrorOutput.js';
-import { getCircleCIClient } from '../../clients/client.js';
+import type { runEvaluationTestsInputSchema } from './inputSchema.js';
 
 export const runEvaluationTests: ToolCallback<{
   params: typeof runEvaluationTestsInputSchema;
@@ -28,7 +28,7 @@ export const runEvaluationTests: ToolCallback<{
   if (inputProjectSlug) {
     if (!branch) {
       return mcpErrorOutput(
-        'Branch not provided. When using projectSlug, a branch must also be specified.',
+        'Branch not provided. When using projectSlug, a branch must also be specified.'
       );
     }
     projectSlug = inputProjectSlug;
@@ -41,7 +41,7 @@ export const runEvaluationTests: ToolCallback<{
     });
   } else {
     return mcpErrorOutput(
-      'Missing required inputs. Please provide either: 1) projectSlug with branch, 2) projectURL, or 3) workspaceRoot with gitRemoteURL and branch.',
+      'Missing required inputs. Please provide either: 1) projectSlug with branch, 2) projectURL, or 3) workspaceRoot with gitRemoteURL and branch.'
     );
   }
 
@@ -56,14 +56,12 @@ export const runEvaluationTests: ToolCallback<{
   }
   const foundBranch = branchFromURL || branch;
   if (!foundBranch) {
-    return mcpErrorOutput(
-      'No branch provided. Try using the current git branch.',
-    );
+    return mcpErrorOutput('No branch provided. Try using the current git branch.');
   }
 
   if (!promptFiles || promptFiles.length === 0) {
     return mcpErrorOutput(
-      'No prompt template files provided. Please ensure you have prompt template files in the ./prompts directory (e.g. <relevant-name>.prompt.yml) and include them in the promptFiles parameter.',
+      'No prompt template files provided. Please ensure you have prompt template files in the ./prompts directory (e.g. <relevant-name>.prompt.yml) and include them in the promptFiles parameter.'
     );
   }
 
@@ -84,14 +82,13 @@ export const runEvaluationTests: ToolCallback<{
 
   if (pipelineChoices.length === 0) {
     return mcpErrorOutput(
-      'No pipeline definitions found. Please make sure your project is set up on CircleCI to run pipelines.',
+      'No pipeline definitions found. Please make sure your project is set up on CircleCI to run pipelines.'
     );
   }
 
   const formattedPipelineChoices = pipelineChoices
     .map(
-      (pipeline, index) =>
-        `${index + 1}. ${pipeline.name} (definitionId: ${pipeline.definitionId})`,
+      (pipeline, index) => `${index + 1}. ${pipeline.name} (definitionId: ${pipeline.definitionId})`
     )
     .join('\n');
 
@@ -112,12 +109,11 @@ export const runEvaluationTests: ToolCallback<{
 
   if (pipelineChoiceName && !chosenPipeline) {
     return mcpErrorOutput(
-      `Pipeline definition with name ${pipelineChoiceName} not found. Please choose one of the following:\n${formattedPipelineChoices}`,
+      `Pipeline definition with name ${pipelineChoiceName} not found. Please choose one of the following:\n${formattedPipelineChoices}`
     );
   }
 
-  const runPipelineDefinitionId =
-    chosenPipeline?.definitionId || pipelineChoices[0].definitionId;
+  const runPipelineDefinitionId = chosenPipeline?.definitionId || pipelineChoices[0].definitionId;
 
   // Process each file for compression and encoding
   const processedFiles = promptFiles.map((promptFile) => {
@@ -128,10 +124,7 @@ export const runEvaluationTests: ToolCallback<{
       // For JSON files, parse and re-stringify to ensure proper formatting
       const json = JSON.parse(promptFile.fileContent);
       processedPromptFileContent = JSON.stringify(json, null);
-    } else if (
-      fileExtension.endsWith('.yml') ||
-      fileExtension.endsWith('.yaml')
-    ) {
+    } else if (fileExtension.endsWith('.yml') || fileExtension.endsWith('.yaml')) {
       // For YAML files, keep as-is
       processedPromptFileContent = promptFile.fileContent;
     } else {
@@ -156,7 +149,7 @@ export const runEvaluationTests: ToolCallback<{
         `          if [ "$CIRCLE_NODE_INDEX" = "${index}" ]; then
             sudo mkdir -p /prompts
             echo "${file.base64GzippedContent}" | base64 -d | gzip -d | sudo tee /prompts/${file.fileName} > /dev/null
-          fi`,
+          fi`
     )
     .join('\n');
 
@@ -166,7 +159,7 @@ export const runEvaluationTests: ToolCallback<{
       (file, index) =>
         `          if [ "$CIRCLE_NODE_INDEX" = "${index}" ]; then
             python eval.py ${file.fileName}
-          fi`,
+          fi`
     )
     .join('\n');
 

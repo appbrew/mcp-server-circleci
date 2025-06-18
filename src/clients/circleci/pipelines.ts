@@ -1,11 +1,11 @@
 import {
   PaginatedPipelineResponseSchema,
   Pipeline,
+  type PipelineDefinition,
   PipelineDefinitionsResponse,
   RunPipelineResponse,
-  PipelineDefinition,
 } from '../schemas.js';
-import { HTTPClient } from './httpClient.js';
+import type { HTTPClient } from './httpClient.js';
 import { defaultPaginationOptions } from './index.js';
 
 export class PipelinesAPI {
@@ -70,10 +70,7 @@ export class PipelinesAPI {
         ...(nextPageToken ? { 'page-token': nextPageToken } : {}),
       };
 
-      const rawResult = await this.client.get<unknown>(
-        `/project/${projectSlug}/pipeline`,
-        params,
-      );
+      const rawResult = await this.client.get<unknown>(`/project/${projectSlug}/pipeline`, params);
 
       const result = PaginatedPipelineResponseSchema.safeParse(rawResult);
 
@@ -106,7 +103,7 @@ export class PipelinesAPI {
     pipelineNumber: number;
   }): Promise<Pipeline | undefined> {
     const rawResult = await this.client.get<unknown>(
-      `/project/${projectSlug}/pipeline/${pipelineNumber}`,
+      `/project/${projectSlug}/pipeline/${pipelineNumber}`
     );
 
     const parsedResult = Pipeline.safeParse(rawResult);
@@ -122,9 +119,7 @@ export class PipelinesAPI {
   }: {
     projectId: string;
   }): Promise<PipelineDefinition[]> {
-    const rawResult = await this.client.get<unknown>(
-      `/projects/${projectId}/pipeline-definitions`,
-    );
+    const rawResult = await this.client.get<unknown>(`/projects/${projectId}/pipeline-definitions`);
 
     const parsedResult = PipelineDefinitionsResponse.safeParse(rawResult);
     if (!parsedResult.success) {
@@ -145,19 +140,16 @@ export class PipelinesAPI {
     definitionId: string;
     configContent?: string;
   }): Promise<RunPipelineResponse> {
-    const rawResult = await this.client.post<unknown>(
-      `/project/${projectSlug}/pipeline/run`,
-      {
-        definition_id: definitionId,
-        config: {
-          branch,
-          content: configContent,
-        },
-        checkout: {
-          branch,
-        },
+    const rawResult = await this.client.post<unknown>(`/project/${projectSlug}/pipeline/run`, {
+      definition_id: definitionId,
+      config: {
+        branch,
+        content: configContent,
       },
-    );
+      checkout: {
+        branch,
+      },
+    });
 
     const parsedResult = RunPipelineResponse.safeParse(rawResult);
     if (!parsedResult.success) {

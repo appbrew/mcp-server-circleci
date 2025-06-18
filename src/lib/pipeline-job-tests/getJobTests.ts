@@ -1,5 +1,5 @@
 import { getCircleCIClient } from '../../clients/client.js';
-import { Pipeline } from '../../clients/schemas.js';
+import type { Pipeline } from '../../clients/schemas.js';
 import { rateLimitedRequests } from '../rateLimitedRequests/index.js';
 
 /**
@@ -72,7 +72,7 @@ export const getJobTests = async ({
         return await circleci.jobs.getWorkflowJobs({
           workflowId: workflow.id,
         });
-      }),
+      })
     )
   ).flat();
 
@@ -95,15 +95,12 @@ export const getJobTests = async ({
           return [];
         }
         if (error instanceof Error && error.message.includes('429')) {
-          console.error(
-            `Rate limited for job request ${job.job_number}:`,
-            error,
-          );
+          console.error(`Rate limited for job request ${job.job_number}:`, error);
           return [];
         }
         throw error;
       }
-    }),
+    })
   );
 
   const tests = testsArrays.flat();

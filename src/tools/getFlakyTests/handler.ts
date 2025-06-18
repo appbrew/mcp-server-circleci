@@ -1,28 +1,18 @@
-import { ToolCallback } from '@modelcontextprotocol/sdk/server/mcp.js';
-import {
-  getProjectSlugFromURL,
-  identifyProjectSlug,
-} from '../../lib/project-detection/index.js';
-import { getFlakyTestLogsInputSchema } from './inputSchema.js';
-import getFlakyTests, {
-  formatFlakyTests,
-} from '../../lib/flaky-tests/getFlakyTests.js';
+import { writeFileSync } from 'node:fs';
+import { join } from 'node:path';
+import type { ToolCallback } from '@modelcontextprotocol/sdk/server/mcp.js';
+import type { Test } from '../../clients/schemas.js';
+import getFlakyTests, { formatFlakyTests } from '../../lib/flaky-tests/getFlakyTests.js';
 import mcpErrorOutput from '../../lib/mcpErrorOutput.js';
-import { writeFileSync } from 'fs';
-import { join } from 'path';
-import { Test } from '../../clients/schemas.js';
+import { getProjectSlugFromURL, identifyProjectSlug } from '../../lib/project-detection/index.js';
+import type { getFlakyTestLogsInputSchema } from './inputSchema.js';
 
 export const useFileOutputDirectory = './flaky-tests-output';
 
 export const getFlakyTestLogs: ToolCallback<{
   params: typeof getFlakyTestLogsInputSchema;
 }> = async (args) => {
-  const {
-    workspaceRoot,
-    gitRemoteURL,
-    projectURL,
-    projectSlug: inputProjectSlug,
-  } = args.params;
+  const { workspaceRoot, gitRemoteURL, projectURL, projectSlug: inputProjectSlug } = args.params;
 
   let projectSlug: string | null | undefined;
 
@@ -36,7 +26,7 @@ export const getFlakyTestLogs: ToolCallback<{
     });
   } else {
     return mcpErrorOutput(
-      'Missing required inputs. Please provide either: 1) projectSlug, 2) projectURL, or 3) workspaceRoot with gitRemoteURL.',
+      'Missing required inputs. Please provide either: 1) projectSlug, 2) projectURL, or 3) workspaceRoot with gitRemoteURL.'
     );
   }
 
@@ -140,7 +130,7 @@ const writeTestsToFiles = async ({
 
   try {
     // Create directory recursively
-    const { mkdirSync } = await import('fs');
+    const { mkdirSync } = await import('node:fs');
     mkdirSync(useFileOutputDirectory, { recursive: true });
 
     // Create .gitignore to ignore all files in this directory
@@ -149,7 +139,7 @@ const writeTestsToFiles = async ({
     writeFileSync(gitignorePath, gitignoreContent, 'utf8');
   } catch (error) {
     return mcpErrorOutput(
-      `Failed to create output directory: ${error instanceof Error ? error.message : String(error)}`,
+      `Failed to create output directory: ${error instanceof Error ? error.message : String(error)}`
     );
   }
 
@@ -174,7 +164,7 @@ const writeTestsToFiles = async ({
     };
   } catch (error) {
     return mcpErrorOutput(
-      `Failed to write flaky test files: ${error instanceof Error ? error.message : String(error)}`,
+      `Failed to write flaky test files: ${error instanceof Error ? error.message : String(error)}`
     );
   }
 };

@@ -1,7 +1,7 @@
-import { ToolCallback } from '@modelcontextprotocol/sdk/server/mcp.js';
-import { createPromptTemplateInputSchema } from './inputSchema.js';
+import type { ToolCallback } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { CircletClient } from '../../clients/circlet/index.js';
 import { PromptWorkbenchToolName } from '../shared/constants.js';
+import type { createPromptTemplateInputSchema } from './inputSchema.js';
 
 export const promptOriginKey = 'promptOrigin';
 export const promptTemplateKey = 'promptTemplate';
@@ -15,10 +15,7 @@ export const createPromptTemplate: ToolCallback<{
   const { prompt, promptOrigin, model } = args.params;
 
   const circlet = new CircletClient();
-  const promptObject = await circlet.circlet.createPromptTemplate(
-    prompt,
-    promptOrigin,
-  );
+  const promptObject = await circlet.circlet.createPromptTemplate(prompt, promptOrigin);
 
   return {
     content: [

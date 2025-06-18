@@ -1,8 +1,8 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { getFlakyTestLogs, useFileOutputDirectory } from './handler.js';
-import * as projectDetection from '../../lib/project-detection/index.js';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import * as getFlakyTestsModule from '../../lib/flaky-tests/getFlakyTests.js';
 import * as formatFlakyTestsModule from '../../lib/flaky-tests/getFlakyTests.js';
+import * as projectDetection from '../../lib/project-detection/index.js';
+import { getFlakyTestLogs, useFileOutputDirectory } from './handler.js';
 
 // Mock dependencies
 vi.mock('../../lib/project-detection/index.js');
@@ -27,7 +27,7 @@ vi.mock('path', () => ({
 describe('getFlakyTestLogs handler', () => {
   beforeEach(() => {
     vi.resetAllMocks();
-    delete process.env.USE_FILE_OUTPUT;
+    process.env.USE_FILE_OUTPUT = undefined;
   });
 
   it('should return a valid MCP error response when no inputs are provided', async () => {
@@ -48,9 +48,7 @@ describe('getFlakyTestLogs handler', () => {
   });
 
   it('should return a valid MCP error response when project is not found', async () => {
-    vi.spyOn(projectDetection, 'identifyProjectSlug').mockResolvedValue(
-      undefined,
-    );
+    vi.spyOn(projectDetection, 'identifyProjectSlug').mockResolvedValue(undefined);
 
     const args = {
       params: {
@@ -112,9 +110,7 @@ describe('getFlakyTestLogs handler', () => {
   });
 
   it('should return a valid MCP success response with flaky tests', async () => {
-    vi.spyOn(projectDetection, 'getProjectSlugFromURL').mockReturnValue(
-      'gh/org/repo',
-    );
+    vi.spyOn(projectDetection, 'getProjectSlugFromURL').mockReturnValue('gh/org/repo');
 
     vi.spyOn(getFlakyTestsModule, 'default').mockResolvedValue([
       {
@@ -198,9 +194,7 @@ describe('getFlakyTestLogs handler', () => {
     expect(response).toHaveProperty('content');
     expect(Array.isArray(response.content)).toBe(true);
     expect(response.content[0]).toHaveProperty('type', 'text');
-    expect(response.content[0].text).toContain(
-      'Found 2 flaky tests that need stabilization',
-    );
+    expect(response.content[0].text).toContain('Found 2 flaky tests that need stabilization');
     expect(response.content[0].text).toContain(useFileOutputDirectory);
   });
 
@@ -221,8 +215,6 @@ describe('getFlakyTestLogs handler', () => {
     });
 
     expect(response).toHaveProperty('content');
-    expect(response.content[0].text).toBe(
-      'No flaky tests found - no files created',
-    );
+    expect(response.content[0].text).toBe('No flaky tests found - no files created');
   });
 });

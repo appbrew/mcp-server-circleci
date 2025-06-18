@@ -1,4 +1,4 @@
-import { Test } from '../../clients/schemas.js';
+import type { Test } from '../../clients/schemas.js';
 import outputTextTruncated, { SEPARATOR } from '../outputTextTruncated.js';
 
 /**

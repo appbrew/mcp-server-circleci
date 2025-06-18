@@ -1,5 +1,5 @@
-import { getJobTestResultsInputSchema } from './inputSchema.js';
 import { option1DescriptionBranchRequired } from '../shared/constants.js';
+import { getJobTestResultsInputSchema } from './inputSchema.js';
 
 export const getJobTestResultsTool = {
   name: 'get_job_test_results' as const,

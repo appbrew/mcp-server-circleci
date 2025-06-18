@@ -136,3 +136,13 @@ dist
 .pnp.*
 
 .cursor
+
+# Cloudflare Workers
+.wrangler/
+wrangler.toml
+.dev.vars
+!.dev.vars.example
+
+# Test output
+test-results/
+test-output/

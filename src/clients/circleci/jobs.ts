@@ -1,7 +1,7 @@
-import { Job } from '../schemas.js';
-import { HTTPClient } from './httpClient.js';
-import { defaultPaginationOptions } from './index.js';
 import { z } from 'zod';
+import { Job } from '../schemas.js';
+import type { HTTPClient } from './httpClient.js';
+import { defaultPaginationOptions } from './index.js';
 
 const WorkflowJobResponseSchema = z.object({
   items: z.array(Job),
@@ -29,9 +29,7 @@ export class JobsAPI {
     projectSlug: string;
     jobNumber: number;
   }): Promise<Job> {
-    const rawResult = await this.client.get<unknown>(
-      `/project/${projectSlug}/job/${jobNumber}`,
-    );
+    const rawResult = await this.client.get<unknown>(`/project/${projectSlug}/job/${jobNumber}`);
     // Validate the response against our Job schema
     return Job.parse(rawResult);
   }
@@ -78,10 +76,7 @@ export class JobsAPI {
       }
 
       const params = nextPageToken ? { 'page-token': nextPageToken } : {};
-      const rawResult = await this.client.get<unknown>(
-        `/workflow/${workflowId}/job`,
-        params,
-      );
+      const rawResult = await this.client.get<unknown>(`/workflow/${workflowId}/job`, params);
 
       // Validate the response against our WorkflowJobResponse schema
       const result = WorkflowJobResponseSchema.parse(rawResult);

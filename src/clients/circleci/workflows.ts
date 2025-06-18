@@ -1,7 +1,7 @@
-import { Workflow, RerunWorkflow } from '../schemas.js';
-import { HTTPClient } from './httpClient.js';
-import { defaultPaginationOptions } from './index.js';
 import { z } from 'zod';
+import { RerunWorkflow, Workflow } from '../schemas.js';
+import type { HTTPClient } from './httpClient.js';
+import { defaultPaginationOptions } from './index.js';
 
 const WorkflowResponseSchema = z.object({
   items: z.array(Workflow),
@@ -57,10 +57,7 @@ export class WorkflowsAPI {
       }
 
       const params = nextPageToken ? { 'page-token': nextPageToken } : {};
-      const rawResult = await this.client.get<unknown>(
-        `/pipeline/${pipelineId}/workflow`,
-        params,
-      );
+      const rawResult = await this.client.get<unknown>(`/pipeline/${pipelineId}/workflow`, params);
 
       // Validate the response against our WorkflowResponse schema
       const result = WorkflowResponseSchema.parse(rawResult);
@@ -104,12 +101,9 @@ export class WorkflowsAPI {
     workflowId: string;
     fromFailed?: boolean;
   }): Promise<RerunWorkflow> {
-    const rawResult = await this.client.post<unknown>(
-      `/workflow/${workflowId}/rerun`,
-      {
-        from_failed: fromFailed,
-      },
-    );
+    const rawResult = await this.client.post<unknown>(`/workflow/${workflowId}/rerun`, {
+      from_failed: fromFailed,
+    });
     const parsedResult = RerunWorkflow.safeParse(rawResult);
     if (!parsedResult.success) {
       throw new Error('Failed to parse workflow response');

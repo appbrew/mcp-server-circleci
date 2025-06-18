@@ -1,0 +1,191 @@
+import { decryptCookie, encryptCookie, generateConsentForm } from './oauth-utils';
+import '../../worker-configuration';
+
+export async function handleOAuthRequest(request: Request, env: Env): Promise<Response> {
+  const url = new URL(request.url);
+
+  switch (url.pathname) {
+    case '/authorize':
+      return handleAuthorizeRequest(request, env);
+    case '/token':
+      return handleTokenRequest(request, env);
+    case '/oauth/consent':
+      return handleConsentRequest(request, env);
+    default:
+      return new Response('Not Found', { status: 404 });
+  }
+}
+
+async function handleAuthorizeRequest(request: Request, env: Env): Promise<Response> {
+  const url = new URL(request.url);
+  const clientId = url.searchParams.get('client_id');
+  const redirectUri = url.searchParams.get('redirect_uri');
+  const responseType = url.searchParams.get('response_type');
+  const state = url.searchParams.get('state');
+  const scope = url.searchParams.get('scope');
+
+  if (!clientId || !redirectUri || responseType !== 'code') {
+    return new Response('Invalid request parameters', { status: 400 });
+  }
+
+  // Check if client is already authorized
+  const authKey = `auth:${clientId}`;
+  const existingAuth = await env.OAUTH_DATA.get(authKey);
+
+  if (existingAuth) {
+    // Generate authorization code
+    const code = crypto.randomUUID();
+    const codeKey = `code:${code}`;
+    await env.OAUTH_DATA.put(
+      codeKey,
+      JSON.stringify({
+        clientId,
+        redirectUri,
+        scope,
+        expiresAt: Date.now() + 10 * 60 * 1000, // 10 minutes
+      }),
+      { expirationTtl: 600 }
+    );
+
+    const redirectUrl = new URL(redirectUri);
+    redirectUrl.searchParams.set('code', code);
+    if (state) redirectUrl.searchParams.set('state', state);
+
+    return Response.redirect(redirectUrl.toString(), 302);
+  }
+
+  // Show consent form
+  const consentForm = generateConsentForm({
+    clientId,
+    redirectUri,
+    state: state || undefined,
+    scope: scope || 'read',
+  });
+
+  return new Response(consentForm, {
+    headers: { 'Content-Type': 'text/html' },
+  });
+}
+
+async function handleConsentRequest(request: Request, env: Env): Promise<Response> {
+  if (request.method !== 'POST') {
+    return new Response('Method not allowed', { status: 405 });
+  }
+
+  const formData = await request.formData();
+  const clientId = formData.get('client_id') as string;
+  const redirectUri = formData.get('redirect_uri') as string;
+  const state = formData.get('state') as string | null;
+  const scope = formData.get('scope') as string;
+  const action = formData.get('action') as string;
+
+  if (action !== 'allow') {
+    const redirectUrl = new URL(redirectUri);
+    redirectUrl.searchParams.set('error', 'access_denied');
+    if (state) redirectUrl.searchParams.set('state', state);
+    return Response.redirect(redirectUrl.toString(), 302);
+  }
+
+  // Redirect to Cloudflare Access for authentication
+  const accessUrl = new URL(env.ACCESS_AUTHORIZATION_URL);
+  accessUrl.searchParams.set('client_id', env.ACCESS_CLIENT_ID);
+  accessUrl.searchParams.set('response_type', 'code');
+  accessUrl.searchParams.set('redirect_uri', `${new URL(request.url).origin}/oauth/callback`);
+  accessUrl.searchParams.set('scope', 'openid profile email');
+
+  // Store OAuth state in encrypted cookie
+  const oauthState = {
+    clientId,
+    redirectUri,
+    state,
+    scope,
+    originalState: crypto.randomUUID(),
+  };
+
+  const encryptedState = await encryptCookie(JSON.stringify(oauthState), env.COOKIE_ENCRYPTION_KEY);
+  accessUrl.searchParams.set('state', oauthState.originalState);
+
+  return new Response('', {
+    status: 302,
+    headers: {
+      Location: accessUrl.toString(),
+      'Set-Cookie': `oauth_state=${encryptedState}; HttpOnly; Secure; SameSite=Lax; Max-Age=3600`,
+    },
+  });
+}
+
+async function handleTokenRequest(request: Request, env: Env): Promise<Response> {
+  if (request.method !== 'POST') {
+    return new Response('Method not allowed', { status: 405 });
+  }
+
+  const formData = await request.formData();
+  const grantType = formData.get('grant_type') as string;
+  const code = formData.get('code') as string;
+  const clientId = formData.get('client_id') as string;
+  const clientSecret = formData.get('client_secret') as string;
+
+  if (grantType !== 'authorization_code' || !code || !clientId) {
+    return new Response(JSON.stringify({ error: 'invalid_request' }), {
+      status: 400,
+      headers: { 'Content-Type': 'application/json' },
+    });
+  }
+
+  // Verify client credentials (basic validation)
+  if (clientSecret && clientSecret !== 'valid-secret') {
+    return new Response(JSON.stringify({ error: 'invalid_client' }), {
+      status: 401,
+      headers: { 'Content-Type': 'application/json' },
+    });
+  }
+
+  // Verify authorization code
+  const codeKey = `code:${code}`;
+  const codeData = await env.OAUTH_DATA.get(codeKey);
+
+  if (!codeData) {
+    return new Response(JSON.stringify({ error: 'invalid_grant' }), {
+      status: 400,
+      headers: { 'Content-Type': 'application/json' },
+    });
+  }
+
+  const parsedCodeData = JSON.parse(codeData);
+  if (parsedCodeData.expiresAt < Date.now()) {
+    await env.OAUTH_DATA.delete(codeKey);
+    return new Response(JSON.stringify({ error: 'invalid_grant' }), {
+      status: 400,
+      headers: { 'Content-Type': 'application/json' },
+    });
+  }
+
+  // Generate access token
+  const accessToken = crypto.randomUUID();
+  const tokenKey = `token:${accessToken}`;
+  await env.OAUTH_DATA.put(
+    tokenKey,
+    JSON.stringify({
+      clientId: parsedCodeData.clientId,
+      scope: parsedCodeData.scope,
+      issuedAt: Date.now(),
+      expiresAt: Date.now() + 60 * 60 * 1000, // 1 hour
+    }),
+    { expirationTtl: 3600 }
+  );
+
+  // Clean up authorization code
+  await env.OAUTH_DATA.delete(codeKey);
+
+  return new Response(
+    JSON.stringify({
+      access_token: accessToken,
+      token_type: 'Bearer',
+      expires_in: 3600,
+      scope: parsedCodeData.scope,
+    }),
+    {
+      headers: { 'Content-Type': 'application/json' },
+    }
+  );
+}

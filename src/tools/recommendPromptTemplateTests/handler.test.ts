@@ -1,15 +1,15 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { recommendPromptTemplateTests } from './handler.js';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { CircletClient } from '../../clients/circlet/index.js';
 import {
-  defaultModel,
   PromptOrigin,
-  promptsOutputDirectory,
-  fileNameTemplate,
+  defaultModel,
   fileNameExample1,
   fileNameExample2,
   fileNameExample3,
+  fileNameTemplate,
+  promptsOutputDirectory,
 } from '../shared/constants.js';
+import { recommendPromptTemplateTests } from './handler.js';
 
 // Mock dependencies
 vi.mock('../../clients/circlet/index.js');
@@ -26,9 +26,7 @@ describe('recommendPromptTemplateTests handler', () => {
       'Test with empty variable',
     ];
 
-    const mockRecommendPromptTemplateTests = vi
-      .fn()
-      .mockResolvedValue(mockRecommendedTests);
+    const mockRecommendPromptTemplateTests = vi.fn().mockResolvedValue(mockRecommendedTests);
 
     const mockCircletInstance = {
       circlet: {
@@ -36,9 +34,7 @@ describe('recommendPromptTemplateTests handler', () => {
       },
     };
 
-    vi.mocked(CircletClient).mockImplementation(
-      () => mockCircletInstance as any,
-    );
+    vi.mocked(CircletClient).mockImplementation(() => mockCircletInstance as any);
 
     const template = 'This is a test template with {{variable}}';
     const contextSchema = {
@@ -73,14 +69,12 @@ describe('recommendPromptTemplateTests handler', () => {
 
     // Verify recommended tests are included
     expect(responseText).toContain('recommendedTests:');
-    expect(responseText).toContain(
-      JSON.stringify(mockRecommendedTests, null, 2),
-    );
+    expect(responseText).toContain(JSON.stringify(mockRecommendedTests, null, 2));
 
     // Verify next steps and file saving instructions
     expect(responseText).toContain('NEXT STEP:');
     expect(responseText).toContain(
-      'save the `promptTemplate`, `contextSchema`, and `recommendedTests`',
+      'save the `promptTemplate`, `contextSchema`, and `recommendedTests`'
     );
 
     // Verify file saving rules
@@ -101,16 +95,12 @@ describe('recommendPromptTemplateTests handler', () => {
     expect(responseText).toContain('`sampleInputs`: object[]');
 
     // Should not contain integration instructions for requirements-based prompts
-    expect(responseText).not.toContain(
-      'FINALLY, ONCE ALL THE FILES ARE SAVED:',
-    );
+    expect(responseText).not.toContain('FINALLY, ONCE ALL THE FILES ARE SAVED:');
   });
 
   it('should include integration instructions for codebase-based prompts', async () => {
     const mockRecommendedTests = ['Test case 1'];
-    const mockRecommendPromptTemplateTests = vi
-      .fn()
-      .mockResolvedValue(mockRecommendedTests);
+    const mockRecommendPromptTemplateTests = vi.fn().mockResolvedValue(mockRecommendedTests);
 
     const mockCircletInstance = {
       circlet: {
@@ -118,9 +108,7 @@ describe('recommendPromptTemplateTests handler', () => {
       },
     };
 
-    vi.mocked(CircletClient).mockImplementation(
-      () => mockCircletInstance as any,
-    );
+    vi.mocked(CircletClient).mockImplementation(() => mockCircletInstance as any);
 
     const args = {
       params: {
@@ -141,7 +129,7 @@ describe('recommendPromptTemplateTests handler', () => {
     expect(responseText).toContain('1. Ask user if they want to integrate');
     expect(responseText).toContain('(Yes/No)');
     expect(responseText).toContain(
-      `2. If yes, import the \`${promptsOutputDirectory}\` files into their app, following codebase conventions`,
+      `2. If yes, import the \`${promptsOutputDirectory}\` files into their app, following codebase conventions`
     );
     expect(responseText).toContain('3. Only use existing dependencies');
   });
@@ -149,15 +137,11 @@ describe('recommendPromptTemplateTests handler', () => {
   it('should handle errors from CircletClient', async () => {
     const mockCircletInstance = {
       circlet: {
-        recommendPromptTemplateTests: vi
-          .fn()
-          .mockRejectedValue(new Error('API error')),
+        recommendPromptTemplateTests: vi.fn().mockRejectedValue(new Error('API error')),
       },
     };
 
-    vi.mocked(CircletClient).mockImplementation(
-      () => mockCircletInstance as any,
-    );
+    vi.mocked(CircletClient).mockImplementation(() => mockCircletInstance as any);
 
     const args = {
       params: {
@@ -170,8 +154,8 @@ describe('recommendPromptTemplateTests handler', () => {
 
     const controller = new AbortController();
 
-    await expect(
-      recommendPromptTemplateTests(args, { signal: controller.signal }),
-    ).rejects.toThrow('API error');
+    await expect(recommendPromptTemplateTests(args, { signal: controller.signal })).rejects.toThrow(
+      'API error'
+    );
   });
 });

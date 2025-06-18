@@ -1,4 +1,4 @@
-import { createErrorResponse, McpErrorResponse } from './mcpResponse.js';
+import { type McpErrorResponse, createErrorResponse } from './mcpResponse.js';
 
 /**
  * Creates an MCP error response with the provided text

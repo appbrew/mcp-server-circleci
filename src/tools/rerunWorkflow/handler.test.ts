@@ -1,6 +1,6 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { rerunWorkflow } from './handler.js';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import * as client from '../../clients/client.js';
+import { rerunWorkflow } from './handler.js';
 
 vi.mock('../../clients/client.js');
 
@@ -8,23 +8,16 @@ const failedWorkflowId = '00000000-0000-0000-0000-000000000000';
 const successfulWorkflowId = '11111111-1111-1111-1111-111111111111';
 const newWorkflowId = '11111111-1111-1111-1111-111111111111';
 
-function setupMockClient(
-  workflowStatus,
-  rerunResult = { workflow_id: newWorkflowId },
-) {
+function setupMockClient(workflowStatus, rerunResult = { workflow_id: newWorkflowId }) {
   const mockCircleCIClient = {
     workflows: {
       getWorkflow: vi
         .fn()
-        .mockResolvedValue(
-          workflowStatus !== undefined ? { status: workflowStatus } : undefined,
-        ),
+        .mockResolvedValue(workflowStatus !== undefined ? { status: workflowStatus } : undefined),
       rerunWorkflow: vi.fn().mockResolvedValue(rerunResult),
     },
   };
-  vi.spyOn(client, 'getCircleCIClient').mockReturnValue(
-    mockCircleCIClient as any,
-  );
+  vi.spyOn(client, 'getCircleCIClient').mockReturnValue(mockCircleCIClient as any);
   return mockCircleCIClient;
 }
 
@@ -44,7 +37,7 @@ describe('rerunWorkflow', () => {
         },
         {
           signal: controller.signal,
-        },
+        }
       );
       expect(mockCircleCIClient.workflows.rerunWorkflow).toHaveBeenCalledWith({
         workflowId: failedWorkflowId,
@@ -71,7 +64,7 @@ describe('rerunWorkflow', () => {
         },
         {
           signal: controller.signal,
-        },
+        }
       );
       expect(mockCircleCIClient.workflows.rerunWorkflow).toHaveBeenCalledWith({
         workflowId: failedWorkflowId,
@@ -99,7 +92,7 @@ describe('rerunWorkflow', () => {
         },
         {
           signal: controller.signal,
-        },
+        }
       );
       expect(mockCircleCIClient.workflows.rerunWorkflow).toHaveBeenCalledWith({
         workflowId: failedWorkflowId,
@@ -133,7 +126,7 @@ describe('rerunWorkflow', () => {
         },
         {
           signal: controller.signal,
-        },
+        }
       );
       expect(mockCircleCIClient.workflows.rerunWorkflow).not.toHaveBeenCalled();
       expect(response).toEqual({
@@ -158,7 +151,7 @@ describe('rerunWorkflow', () => {
         },
         {
           signal: controller.signal,
-        },
+        }
       );
       expect(mockCircleCIClient.workflows.rerunWorkflow).toHaveBeenCalledWith({
         workflowId: successfulWorkflowId,
@@ -185,7 +178,7 @@ describe('rerunWorkflow', () => {
         },
         {
           signal: controller.signal,
-        },
+        }
       );
       expect(mockCircleCIClient.workflows.rerunWorkflow).toHaveBeenCalledWith({
         workflowId: successfulWorkflowId,
@@ -211,7 +204,7 @@ describe('rerunWorkflow', () => {
         },
         {
           signal: controller.signal,
-        },
+        }
       );
       expect(mockCircleCIClient.workflows.rerunWorkflow).toHaveBeenCalledWith({
         workflowId: successfulWorkflowId,
@@ -237,7 +230,7 @@ describe('rerunWorkflow', () => {
         },
         {
           signal: controller.signal,
-        },
+        }
       );
       expect(mockCircleCIClient.workflows.rerunWorkflow).toHaveBeenCalledWith({
         workflowId: successfulWorkflowId,
@@ -264,7 +257,7 @@ describe('rerunWorkflow', () => {
         },
         {
           signal: controller.signal,
-        },
+        }
       );
       expect(mockCircleCIClient.workflows.rerunWorkflow).toHaveBeenCalledWith({
         workflowId: successfulWorkflowId,
@@ -285,10 +278,7 @@ describe('rerunWorkflow', () => {
     it('should return an error if both workflowId and workflowURL are missing', async () => {
       setupMockClient(undefined);
       const controller = new AbortController();
-      const response = await rerunWorkflow(
-        { params: {} },
-        { signal: controller.signal },
-      );
+      const response = await rerunWorkflow({ params: {} }, { signal: controller.signal });
       expect(response).toEqual({
         isError: true,
         content: [
@@ -305,7 +295,7 @@ describe('rerunWorkflow', () => {
       const controller = new AbortController();
       const response = await rerunWorkflow(
         { params: { workflowId: 'nonexistent-id' } },
-        { signal: controller.signal },
+        { signal: controller.signal }
       );
       expect(response).toEqual({
         isError: true,
@@ -319,17 +309,13 @@ describe('rerunWorkflow', () => {
     });
 
     it('should return an error if workflowURL is invalid and cannot extract workflowId', async () => {
-      const getWorkflowIdFromURL = await import(
-        '../../lib/getWorkflowIdFromURL.js'
-      );
-      const spy = vi
-        .spyOn(getWorkflowIdFromURL, 'getWorkflowIdFromURL')
-        .mockReturnValue(undefined);
+      const getWorkflowIdFromURL = await import('../../lib/getWorkflowIdFromURL.js');
+      const spy = vi.spyOn(getWorkflowIdFromURL, 'getWorkflowIdFromURL').mockReturnValue(undefined);
       setupMockClient(undefined);
       const controller = new AbortController();
       const response = await rerunWorkflow(
         { params: { workflowURL: 'invalid-url' } },
-        { signal: controller.signal },
+        { signal: controller.signal }
       );
       expect(response).toEqual({
         isError: true,

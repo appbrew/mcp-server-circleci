@@ -1,7 +1,7 @@
 import { z } from 'zod';
-import { HTTPClient } from '../circleci/httpClient.js';
-import { FollowedProject } from '../schemas.js';
+import type { HTTPClient } from '../circleci/httpClient.js';
 import { defaultPaginationOptions } from '../circleci/index.js';
+import { FollowedProject } from '../schemas.js';
 
 const FollowedProjectResponseSchema = z.object({
   items: z.array(FollowedProject),
@@ -27,13 +27,12 @@ export class MeAPI {
     options: {
       maxPages?: number;
       timeoutMs?: number;
-    } = {},
+    } = {}
   ): Promise<{
     projects: FollowedProject[];
     reachedMaxPagesOrTimeout: boolean;
   }> {
-    const { maxPages = 20, timeoutMs = defaultPaginationOptions.timeoutMs } =
-      options;
+    const { maxPages = 20, timeoutMs = defaultPaginationOptions.timeoutMs } = options;
 
     const startTime = Date.now();
     const allProjects: FollowedProject[] = [];
@@ -60,10 +59,7 @@ export class MeAPI {
       }
 
       const params = nextPageToken ? { 'page-token': nextPageToken } : {};
-      const rawResult = await this.client.get<unknown>(
-        '/me/followed-projects',
-        params,
-      );
+      const rawResult = await this.client.get<unknown>('/me/followed-projects', params);
 
       // Validate the response against our schema
       const result = FollowedProjectResponseSchema.parse(rawResult);

@@ -1,6 +1,6 @@
-import { ToolCallback } from '@modelcontextprotocol/sdk/server/mcp.js';
-import { analyzeDiffInputSchema } from './inputSchema.js';
+import type { ToolCallback } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { CircletClient } from '../../clients/circlet/index.js';
+import type { analyzeDiffInputSchema } from './inputSchema.js';
 
 /**
  * Analyzes a git diff against cursor rules to identify rule violations
@@ -58,7 +58,7 @@ export const analyzeDiff: ToolCallback<{
     content: [
       {
         type: 'text',
-        text: `All rules are compliant.`,
+        text: 'All rules are compliant.',
       },
     ],
   };

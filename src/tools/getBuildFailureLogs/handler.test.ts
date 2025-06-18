@@ -1,8 +1,8 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { getBuildFailureLogs } from './handler.js';
-import * as projectDetection from '../../lib/project-detection/index.js';
-import * as getPipelineJobLogsModule from '../../lib/pipeline-job-logs/getPipelineJobLogs.js';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import * as formatJobLogs from '../../lib/pipeline-job-logs/getJobLogs.js';
+import * as getPipelineJobLogsModule from '../../lib/pipeline-job-logs/getPipelineJobLogs.js';
+import * as projectDetection from '../../lib/project-detection/index.js';
+import { getBuildFailureLogs } from './handler.js';
 
 // Mock dependencies
 vi.mock('../../lib/project-detection/index.js');
@@ -32,9 +32,7 @@ describe('getBuildFailureLogs handler', () => {
   });
 
   it('should return a valid MCP error response when project is not found', async () => {
-    vi.spyOn(projectDetection, 'identifyProjectSlug').mockResolvedValue(
-      undefined,
-    );
+    vi.spyOn(projectDetection, 'identifyProjectSlug').mockResolvedValue(undefined);
 
     const args = {
       params: {
@@ -77,9 +75,7 @@ describe('getBuildFailureLogs handler', () => {
   });
 
   it('should return a valid MCP success response with logs', async () => {
-    vi.spyOn(projectDetection, 'getProjectSlugFromURL').mockReturnValue(
-      'gh/org/repo',
-    );
+    vi.spyOn(projectDetection, 'getProjectSlugFromURL').mockReturnValue('gh/org/repo');
 
     vi.spyOn(getPipelineJobLogsModule, 'default').mockResolvedValue([
       {

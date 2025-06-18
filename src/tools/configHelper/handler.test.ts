@@ -1,6 +1,6 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { configHelper } from './handler.js';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import * as client from '../../clients/client.js';
+import { configHelper } from './handler.js';
 
 // Mock dependencies
 vi.mock('../../clients/client.js');
@@ -17,14 +17,11 @@ describe('configHelper handler', () => {
       },
     };
 
-    vi.spyOn(client, 'getCircleCIClient').mockReturnValue(
-      mockCircleCIClient as any,
-    );
+    vi.spyOn(client, 'getCircleCIClient').mockReturnValue(mockCircleCIClient as any);
 
     const args = {
       params: {
-        configFile:
-          'version: 2.1\njobs:\n  build:\n    docker:\n      - image: cimg/node:16.0',
+        configFile: 'version: 2.1\njobs:\n  build:\n    docker:\n      - image: cimg/node:16.0',
       },
     } as any;
 
@@ -49,9 +46,7 @@ describe('configHelper handler', () => {
       },
     };
 
-    vi.spyOn(client, 'getCircleCIClient').mockReturnValue(
-      mockCircleCIClient as any,
-    );
+    vi.spyOn(client, 'getCircleCIClient').mockReturnValue(mockCircleCIClient as any);
 
     const args = {
       params: {

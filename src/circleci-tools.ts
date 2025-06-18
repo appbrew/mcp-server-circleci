@@ -1,28 +1,28 @@
-import { ToolCallback } from '@modelcontextprotocol/sdk/server/mcp.js';
-import { getBuildFailureLogsTool } from './tools/getBuildFailureLogs/tool.js';
-import { getBuildFailureLogs } from './tools/getBuildFailureLogs/handler.js';
-import { getFlakyTestLogsTool } from './tools/getFlakyTests/tool.js';
-import { getFlakyTestLogs } from './tools/getFlakyTests/handler.js';
-import { getLatestPipelineStatusTool } from './tools/getLatestPipelineStatus/tool.js';
-import { getLatestPipelineStatus } from './tools/getLatestPipelineStatus/handler.js';
-import { getJobTestResultsTool } from './tools/getJobTestResults/tool.js';
-import { getJobTestResults } from './tools/getJobTestResults/handler.js';
+import type { ToolCallback } from '@modelcontextprotocol/sdk/server/mcp.js';
+import { analyzeDiff } from './tools/analyzeDiff/handler.js';
+import { analyzeDiffTool } from './tools/analyzeDiff/tool.js';
 import { configHelper } from './tools/configHelper/handler.js';
 import { configHelperTool } from './tools/configHelper/tool.js';
 import { createPromptTemplate } from './tools/createPromptTemplate/handler.js';
 import { createPromptTemplateTool } from './tools/createPromptTemplate/tool.js';
-import { recommendPromptTemplateTestsTool } from './tools/recommendPromptTemplateTests/tool.js';
+import { getBuildFailureLogs } from './tools/getBuildFailureLogs/handler.js';
+import { getBuildFailureLogsTool } from './tools/getBuildFailureLogs/tool.js';
+import { getFlakyTestLogs } from './tools/getFlakyTests/handler.js';
+import { getFlakyTestLogsTool } from './tools/getFlakyTests/tool.js';
+import { getJobTestResults } from './tools/getJobTestResults/handler.js';
+import { getJobTestResultsTool } from './tools/getJobTestResults/tool.js';
+import { getLatestPipelineStatus } from './tools/getLatestPipelineStatus/handler.js';
+import { getLatestPipelineStatusTool } from './tools/getLatestPipelineStatus/tool.js';
+import { listFollowedProjects } from './tools/listFollowedProjects/handler.js';
+import { listFollowedProjectsTool } from './tools/listFollowedProjects/tool.js';
 import { recommendPromptTemplateTests } from './tools/recommendPromptTemplateTests/handler.js';
+import { recommendPromptTemplateTestsTool } from './tools/recommendPromptTemplateTests/tool.js';
+import { rerunWorkflow } from './tools/rerunWorkflow/handler.js';
+import { rerunWorkflowTool } from './tools/rerunWorkflow/tool.js';
+import { runEvaluationTests } from './tools/runEvaluationTests/handler.js';
+import { runEvaluationTestsTool } from './tools/runEvaluationTests/tool.js';
 import { runPipeline } from './tools/runPipeline/handler.js';
 import { runPipelineTool } from './tools/runPipeline/tool.js';
-import { listFollowedProjectsTool } from './tools/listFollowedProjects/tool.js';
-import { listFollowedProjects } from './tools/listFollowedProjects/handler.js';
-import { runEvaluationTestsTool } from './tools/runEvaluationTests/tool.js';
-import { runEvaluationTests } from './tools/runEvaluationTests/handler.js';
-import { rerunWorkflowTool } from './tools/rerunWorkflow/tool.js';
-import { rerunWorkflow } from './tools/rerunWorkflow/handler.js';
-import { analyzeDiffTool } from './tools/analyzeDiff/tool.js';
-import { analyzeDiff } from './tools/analyzeDiff/handler.js';
 
 // Define the tools with their configurations
 export const CCI_TOOLS = [

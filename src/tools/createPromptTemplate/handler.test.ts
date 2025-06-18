@@ -1,17 +1,13 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { CircletClient } from '../../clients/circlet/index.js';
+import { PromptOrigin, PromptWorkbenchToolName, defaultModel } from '../shared/constants.js';
 import {
   contextSchemaKey,
   createPromptTemplate,
+  modelKey,
   promptOriginKey,
   promptTemplateKey,
-  modelKey,
 } from './handler.js';
-import { CircletClient } from '../../clients/circlet/index.js';
-import {
-  defaultModel,
-  PromptOrigin,
-  PromptWorkbenchToolName,
-} from '../shared/constants.js';
 
 // Mock dependencies
 vi.mock('../../clients/circlet/index.js');
@@ -35,9 +31,7 @@ describe('createPromptTemplate handler', () => {
       },
     };
 
-    vi.mocked(CircletClient).mockImplementation(
-      () => mockCircletInstance as any,
-    );
+    vi.mocked(CircletClient).mockImplementation(() => mockCircletInstance as any);
 
     const args = {
       params: {
@@ -54,7 +48,7 @@ describe('createPromptTemplate handler', () => {
 
     expect(mockCreatePromptTemplate).toHaveBeenCalledWith(
       'Create a test prompt template',
-      PromptOrigin.requirements,
+      PromptOrigin.requirements
     );
 
     expect(response).toHaveProperty('content');
@@ -65,34 +59,24 @@ describe('createPromptTemplate handler', () => {
     const responseText = response.content[0].text;
 
     // Verify promptOrigin is included
-    expect(responseText).toContain(
-      `${promptOriginKey}: ${PromptOrigin.requirements}`,
-    );
+    expect(responseText).toContain(`${promptOriginKey}: ${PromptOrigin.requirements}`);
 
     // Verify model is included
     expect(responseText).toContain(`${modelKey}: ${defaultModel}`);
 
     // Verify template and schema are present
     expect(responseText).toContain(
-      `${promptTemplateKey}: This is a test template with {{variable}}`,
+      `${promptTemplateKey}: This is a test template with {{variable}}`
     );
     expect(responseText).toContain(`${contextSchemaKey}: {`);
     expect(responseText).toContain('"variable": "Description of the variable"');
 
     // Verify next steps format
     expect(responseText).toContain('NEXT STEP:');
-    expect(responseText).toContain(
-      `${PromptWorkbenchToolName.recommend_prompt_template_tests}`,
-    );
-    expect(responseText).toContain(
-      `template: the \`${promptTemplateKey}\` above`,
-    );
-    expect(responseText).toContain(
-      `${contextSchemaKey}: the \`${contextSchemaKey}\` above`,
-    );
-    expect(responseText).toContain(
-      `${promptOriginKey}: the \`${promptOriginKey}\` above`,
-    );
+    expect(responseText).toContain(`${PromptWorkbenchToolName.recommend_prompt_template_tests}`);
+    expect(responseText).toContain(`template: the \`${promptTemplateKey}\` above`);
+    expect(responseText).toContain(`${contextSchemaKey}: the \`${contextSchemaKey}\` above`);
+    expect(responseText).toContain(`${promptOriginKey}: the \`${promptOriginKey}\` above`);
     expect(responseText).toContain(`${modelKey}: the \`${modelKey}\` above`);
   });
 
@@ -103,9 +87,7 @@ describe('createPromptTemplate handler', () => {
       },
     };
 
-    vi.mocked(CircletClient).mockImplementation(
-      () => mockCircletInstance as any,
-    );
+    vi.mocked(CircletClient).mockImplementation(() => mockCircletInstance as any);
 
     const args = {
       params: {
@@ -117,8 +99,8 @@ describe('createPromptTemplate handler', () => {
 
     const controller = new AbortController();
 
-    await expect(
-      createPromptTemplate(args, { signal: controller.signal }),
-    ).rejects.toThrow('API error');
+    await expect(createPromptTemplate(args, { signal: controller.signal })).rejects.toThrow(
+      'API error'
+    );
   });
 });
