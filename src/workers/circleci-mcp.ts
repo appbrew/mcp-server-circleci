@@ -19,27 +19,53 @@ export class CircleCIMCP {
   }
 
   private async handleSSE(request: Request): Promise<Response> {
-    if (!this.server) {
-      this.server = this.createServer();
+    try {
+      if (!this.server) {
+        this.server = this.createServer();
+      }
+
+      // Check if this is a WebSocket upgrade request
+      const upgradeHeader = request.headers.get('upgrade');
+      if (upgradeHeader?.toLowerCase() === 'websocket') {
+        const webSocketPair = new WebSocketPair();
+        const client = webSocketPair[0];
+        const serverSocket = webSocketPair[1];
+
+        serverSocket.accept();
+        this.handleWebSocket(serverSocket);
+
+        return new Response(null, {
+          status: 101,
+          webSocket: client,
+        });
+      }
+
+      // For non-WebSocket requests, return basic SSE
+      const stream = new ReadableStream({
+        start(controller) {
+          const encoder = new TextEncoder();
+          const data = JSON.stringify({
+            jsonrpc: '2.0',
+            method: 'notifications/initialized',
+            params: {}
+          });
+          controller.enqueue(encoder.encode(`data: ${data}\n\n`));
+        }
+      });
+
+      return new Response(stream, {
+        headers: {
+          'Content-Type': 'text/event-stream',
+          'Cache-Control': 'no-cache',
+          'Connection': 'keep-alive',
+          'Access-Control-Allow-Origin': '*',
+          'Access-Control-Allow-Headers': '*',
+        },
+      });
+    } catch (error) {
+      console.error('SSE handler error:', error);
+      return new Response('Internal Server Error', { status: 500 });
     }
-
-    // Always try to upgrade to WebSocket for MCP
-    const webSocketPair = new WebSocketPair();
-    const client = webSocketPair[0];
-    const serverSocket = webSocketPair[1];
-
-    serverSocket.accept();
-    this.handleWebSocket(serverSocket);
-
-    return new Response(null, {
-      status: 101,
-      webSocket: client,
-      headers: {
-        'Upgrade': 'websocket',
-        'Connection': 'Upgrade',
-        'Sec-WebSocket-Accept': '',
-      },
-    });
   }
 
   private async handleMCP(request: Request): Promise<Response> {
