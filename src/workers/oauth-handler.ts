@@ -25,6 +25,8 @@ export async function handleOAuthRequest(request: Request, env: Env): Promise<Re
       return handleAuthorizeRequest(request, env);
     case '/token':
       return handleTokenRequest(request, env);
+    case '/register':
+      return handleRegistrationRequest(request, env);
     case '/oauth/consent':
       return handleConsentRequest(request, env);
     case '/oauth/callback':
@@ -344,5 +346,72 @@ async function handleCallbackRequest(request: Request, env: Env): Promise<Respon
   } catch (error) {
     console.error('OAuth callback error:', error);
     return new Response('Authentication failed', { status: 500 });
+  }
+}
+
+async function handleRegistrationRequest(request: Request, env: Env): Promise<Response> {
+  if (request.method !== 'POST') {
+    return new Response('Method not allowed', { status: 405 });
+  }
+
+  try {
+    const body = await request.json() as {
+      redirect_uris?: string[];
+      token_endpoint_auth_method?: string;
+      grant_types?: string[];
+      response_types?: string[];
+      client_name?: string;
+      client_uri?: string;
+      scope?: string;
+    };
+
+    // Generate client credentials
+    const clientId = crypto.randomUUID();
+    const clientSecret = crypto.randomUUID();
+
+    // Store client registration
+    const clientKey = `client:${clientId}`;
+    await env.MCP_OAUTH_DATA.put(
+      clientKey,
+      JSON.stringify({
+        client_id: clientId,
+        client_secret: clientSecret,
+        redirect_uris: body.redirect_uris || [],
+        token_endpoint_auth_method: body.token_endpoint_auth_method || 'client_secret_post',
+        grant_types: body.grant_types || ['authorization_code'],
+        response_types: body.response_types || ['code'],
+        client_name: body.client_name || 'MCP Client',
+        client_uri: body.client_uri,
+        scope: body.scope || 'read',
+        created_at: Date.now()
+      }),
+      { expirationTtl: 86400 * 365 } // 1 year
+    );
+
+    return new Response(JSON.stringify({
+      client_id: clientId,
+      client_secret: clientSecret,
+      client_id_issued_at: Math.floor(Date.now() / 1000),
+      client_secret_expires_at: 0, // Never expires
+      redirect_uris: body.redirect_uris || [],
+      token_endpoint_auth_method: body.token_endpoint_auth_method || 'client_secret_post',
+      grant_types: body.grant_types || ['authorization_code'],
+      response_types: body.response_types || ['code'],
+      client_name: body.client_name || 'MCP Client',
+      client_uri: body.client_uri,
+      scope: body.scope || 'read'
+    }), {
+      status: 201,
+      headers: { 'Content-Type': 'application/json' },
+    });
+
+  } catch (error) {
+    return new Response(JSON.stringify({
+      error: 'invalid_request',
+      error_description: 'Invalid registration request'
+    }), {
+      status: 400,
+      headers: { 'Content-Type': 'application/json' },
+    });
   }
 }

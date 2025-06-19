@@ -28,7 +28,8 @@ export default {
     if (
       url.pathname.startsWith('/oauth/') ||
       url.pathname === '/authorize' ||
-      url.pathname === '/token'
+      url.pathname === '/token' ||
+      url.pathname === '/register'
     ) {
       return handleOAuthRequest(request, env);
     }
@@ -49,13 +50,16 @@ export default {
     if (url.pathname === '/.well-known/oauth-authorization-server') {
       const baseUrl = new URL(request.url).origin;
       return new Response(JSON.stringify({
-        issuer: baseUrl,
+        issuer: env.ACCESS_JWKS_URL ? env.ACCESS_JWKS_URL.replace('/certs', '') : baseUrl,
         authorization_endpoint: env.ACCESS_AUTHORIZATION_URL || `${baseUrl}/authorize`,
         token_endpoint: env.ACCESS_TOKEN_URL || `${baseUrl}/token`,
+        jwks_uri: env.ACCESS_JWKS_URL || `${baseUrl}/.well-known/jwks.json`,
+        registration_endpoint: `${baseUrl}/register`,
         response_types_supported: ['code'],
         grant_types_supported: ['authorization_code'],
         code_challenge_methods_supported: ['S256'],
-        scopes_supported: ['read']
+        scopes_supported: ['read'],
+        token_endpoint_auth_methods_supported: ['client_secret_post', 'client_secret_basic']
       }), {
         headers: { 'Content-Type': 'application/json' },
       });
