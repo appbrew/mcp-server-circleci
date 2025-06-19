@@ -23,19 +23,6 @@ export class CircleCIMCP {
       this.server = this.createServer();
     }
 
-    const { readable, writable } = new TransformStream();
-    const writer = writable.getWriter();
-    const encoder = new TextEncoder();
-
-    // SSE headers
-    const headers = new Headers({
-      'Content-Type': 'text/event-stream',
-      'Cache-Control': 'no-cache',
-      Connection: 'keep-alive',
-      'Access-Control-Allow-Origin': '*',
-      'Access-Control-Allow-Headers': 'Cache-Control',
-    });
-
     // Handle WebSocket upgrade for MCP Inspector
     const upgradeHeader = request.headers.get('Upgrade');
     if (upgradeHeader === 'websocket') {
@@ -52,10 +39,21 @@ export class CircleCIMCP {
       });
     }
 
-    // Send initial connection message
-    writer.write(encoder.encode('data: {"type":"connection","status":"connected"}\\n\\n'));
-
-    return new Response(readable, { headers });
+    // For non-WebSocket requests, return server info
+    return new Response(JSON.stringify({
+      name: 'mcp-server-circleci',
+      version: '0.10.1',
+      capabilities: {
+        tools: {},
+        resources: {},
+      }
+    }), {
+      headers: { 
+        'Content-Type': 'application/json',
+        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Headers': 'Cache-Control',
+      },
+    });
   }
 
   private async handleMCP(request: Request): Promise<Response> {
@@ -91,12 +89,59 @@ export class CircleCIMCP {
     webSocket.addEventListener('message', async (event) => {
       try {
         const message = JSON.parse(event.data);
-        // Note: This is a simplified implementation.
-        webSocket.send(JSON.stringify({ message: 'WebSocket MCP not fully implemented' }));
+        
+        // Handle MCP protocol messages
+        if (message.method === 'initialize') {
+          webSocket.send(JSON.stringify({
+            jsonrpc: '2.0',
+            id: message.id,
+            result: {
+              protocolVersion: '2024-11-05',
+              capabilities: {
+                tools: {},
+                resources: {},
+              },
+              serverInfo: {
+                name: 'mcp-server-circleci',
+                version: '0.10.1',
+              }
+            }
+          }));
+        } else if (message.method === 'tools/list') {
+          // Return the available CircleCI tools
+          webSocket.send(JSON.stringify({
+            jsonrpc: '2.0',
+            id: message.id,
+            result: { 
+              tools: [
+                { name: 'getLatestPipelineStatus', description: 'Get the latest pipeline status for a project' },
+                { name: 'listFollowedProjects', description: 'List followed projects' },
+                { name: 'getBuildFailureLogs', description: 'Get build failure logs' },
+                // Add other tools as needed
+              ]
+            }
+          }));
+        } else {
+          // Forward other messages to the MCP server
+          webSocket.send(JSON.stringify({
+            jsonrpc: '2.0',
+            id: message.id,
+            error: {
+              code: -32601,
+              message: 'Method not found'
+            }
+          }));
+        }
       } catch (error) {
         webSocket.send(
           JSON.stringify({
-            error: { message: error instanceof Error ? error.message : 'Unknown error' },
+            jsonrpc: '2.0',
+            id: null,
+            error: {
+              code: -32700,
+              message: 'Parse error',
+              data: error instanceof Error ? error.message : 'Unknown error'
+            }
           })
         );
       }
