@@ -1,5 +1,5 @@
 {
-  "name": "mcp-server-circleci",
+  "name": "mcp-circleci",
   "main": "src/workers/index.ts",
   "compatibility_date": "2025-03-10",
   "compatibility_flags": ["nodejs_compat"],
