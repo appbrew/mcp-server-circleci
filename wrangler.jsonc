@@ -3,6 +3,9 @@
   "main": "src/workers/index.ts",
   "compatibility_date": "2025-03-10",
   "compatibility_flags": ["nodejs_compat"],
+  "vars": {
+    "CIRCLECI_BASE_URL": "https://circleci.com"
+  },
   "kv_namespaces": [
     {
       "binding": "MCP_OAUTH_DATA",
