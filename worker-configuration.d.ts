@@ -13,7 +13,7 @@ declare global {
     CIRCLECI_BASE_URL: string;
 
     // Bindings
-    OAUTH_DATA: KVNamespace;
+    MCP_OAUTH_DATA: KVNamespace;
   }
 }
 

@@ -76,7 +76,7 @@ Cloudflare Workers の手動設定も可能です：
 
 1. **KV名前空間の作成:**
    ```bash
-   wrangler kv:namespace create "OAUTH_DATA"
+   wrangler kv namespace create "MCP_OAUTH_DATA"
    ```
 
 2. **wrangler.jsonc の更新** - KV名前空間IDを設定

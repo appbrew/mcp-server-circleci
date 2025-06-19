@@ -30,13 +30,13 @@ async function handleAuthorizeRequest(request: Request, env: Env): Promise<Respo
 
   // Check if client is already authorized
   const authKey = `auth:${clientId}`;
-  const existingAuth = await env.OAUTH_DATA.get(authKey);
+  const existingAuth = await env.MCP_OAUTH_DATA.get(authKey);
 
   if (existingAuth) {
     // Generate authorization code
     const code = crypto.randomUUID();
     const codeKey = `code:${code}`;
-    await env.OAUTH_DATA.put(
+    await env.MCP_OAUTH_DATA.put(
       codeKey,
       JSON.stringify({
         clientId,
@@ -142,7 +142,7 @@ async function handleTokenRequest(request: Request, env: Env): Promise<Response>
 
   // Verify authorization code
   const codeKey = `code:${code}`;
-  const codeData = await env.OAUTH_DATA.get(codeKey);
+  const codeData = await env.MCP_OAUTH_DATA.get(codeKey);
 
   if (!codeData) {
     return new Response(JSON.stringify({ error: 'invalid_grant' }), {
@@ -153,7 +153,7 @@ async function handleTokenRequest(request: Request, env: Env): Promise<Response>
 
   const parsedCodeData = JSON.parse(codeData);
   if (parsedCodeData.expiresAt < Date.now()) {
-    await env.OAUTH_DATA.delete(codeKey);
+    await env.MCP_OAUTH_DATA.delete(codeKey);
     return new Response(JSON.stringify({ error: 'invalid_grant' }), {
       status: 400,
       headers: { 'Content-Type': 'application/json' },
@@ -163,7 +163,7 @@ async function handleTokenRequest(request: Request, env: Env): Promise<Response>
   // Generate access token
   const accessToken = crypto.randomUUID();
   const tokenKey = `token:${accessToken}`;
-  await env.OAUTH_DATA.put(
+  await env.MCP_OAUTH_DATA.put(
     tokenKey,
     JSON.stringify({
       clientId: parsedCodeData.clientId,
@@ -175,7 +175,7 @@ async function handleTokenRequest(request: Request, env: Env): Promise<Response>
   );
 
   // Clean up authorization code
-  await env.OAUTH_DATA.delete(codeKey);
+  await env.MCP_OAUTH_DATA.delete(codeKey);
 
   return new Response(
     JSON.stringify({

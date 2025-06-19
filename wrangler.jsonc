@@ -5,9 +5,9 @@
   "compatibility_flags": ["nodejs_compat"],
   "kv_namespaces": [
     {
-      "binding": "OAUTH_DATA",
-      "id": "your-kv-namespace-id",
-      "preview_id": "your-preview-kv-namespace-id"
+      "binding": "MCP_OAUTH_DATA",
+      "id": "9a993372076949eb83a7114d50b3e02d",
+      "preview_id": "dd6f3fd861b84ed39a5672609b3ca340"
     }
   ],
   "observability": {

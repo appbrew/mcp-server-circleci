@@ -24,8 +24,8 @@ fi
 
 # Create KV namespace for OAuth data
 echo "📦 Creating KV namespace for OAuth data..."
-KV_ID=$(wrangler kv:namespace create "OAUTH_DATA" --preview false | grep -o 'id = "[^"]*"' | cut -d'"' -f2)
-PREVIEW_KV_ID=$(wrangler kv:namespace create "OAUTH_DATA" --preview | grep -o 'id = "[^"]*"' | cut -d'"' -f2)
+KV_ID=$(wrangler kv namespace create "MCP_OAUTH_DATA" | grep -o 'id = "[^"]*"' | cut -d'"' -f2)
+PREVIEW_KV_ID=$(wrangler kv namespace create "MCP_OAUTH_DATA" --preview | grep -o 'id = "[^"]*"' | cut -d'"' -f2)
 
 echo "✅ KV namespace created:"
 echo "   Production ID: $KV_ID"
