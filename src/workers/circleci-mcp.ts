@@ -54,7 +54,32 @@ export class CircleCIMCP {
       }
     };
 
-    writer.write(encoder.encode(`data: ${JSON.stringify(serverInfo)}\n\n`));
+    // Send server info and keep connection alive
+    const sendData = async () => {
+      try {
+        await writer.write(encoder.encode(`data: ${JSON.stringify(serverInfo)}\n\n`));
+        
+        // Send periodic heartbeat to keep connection alive
+        const heartbeat = setInterval(async () => {
+          try {
+            await writer.write(encoder.encode(`data: {"type":"heartbeat","timestamp":${Date.now()}}\n\n`));
+          } catch (error) {
+            clearInterval(heartbeat);
+          }
+        }, 30000); // Send heartbeat every 30 seconds
+
+        // Handle connection close
+        request.signal?.addEventListener('abort', () => {
+          clearInterval(heartbeat);
+          writer.close();
+        });
+      } catch (error) {
+        console.error('SSE stream error:', error);
+        writer.close();
+      }
+    };
+
+    sendData();
 
     return new Response(readable, {
       headers: {
