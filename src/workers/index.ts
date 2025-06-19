@@ -1,6 +1,6 @@
 import { McpAgent } from 'agents/mcp';
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
-import { CCI_HANDLERS, CCI_TOOLS } from '../circleci-tools.js';
+import { CCI_HANDLERS, CCI_TOOLS, type ToolHandler } from '../circleci-tools.js';
 import { handleOAuthRequest } from './oauth-handler';
 
 interface Env {
@@ -22,7 +22,7 @@ interface Env {
 
 export class CircleCIMCP extends McpAgent {
   server = new McpServer({
-    name: 'mcp-server-circleci',
+    name: 'mcp-circleci',
     version: '0.10.1',
   }) as any;
 
@@ -34,7 +34,12 @@ export class CircleCIMCP extends McpAgent {
         throw new Error(`Handler for tool ${tool.name} not found`);
       }
 
-      this.server.tool(tool.name, tool.description, tool.inputSchema, handler);
+      this.server.tool(
+        tool.name,
+        tool.description,
+        { params: tool.inputSchema },
+        handler as ToolHandler<typeof tool.name>
+      );
     });
   }
 }
@@ -54,7 +59,7 @@ export default {
     }
 
     // Handle MCP SSE endpoint
-    if (url.pathname === '/sse') {
+    if (url.pathname === '/sse' || url.pathname === '/sse/message') {
       return CircleCIMCP.serveSSE('/sse').fetch(request, env, ctx);
     }
 
