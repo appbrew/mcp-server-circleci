@@ -39,55 +39,26 @@ export class CircleCIMCP {
       });
     }
 
-    // For SSE requests, return proper event stream
-    const { readable, writable } = new TransformStream();
-    const writer = writable.getWriter();
-    const encoder = new TextEncoder();
-
-    // Send initial server info as SSE event
-    const serverInfo = {
-      name: 'mcp-server-circleci',
-      version: '0.10.1',
-      capabilities: {
-        tools: {},
-        resources: {},
-      }
-    };
-
-    // Send server info and keep connection alive
-    const sendData = async () => {
-      try {
-        await writer.write(encoder.encode(`data: ${JSON.stringify(serverInfo)}\n\n`));
-        
-        // Send periodic heartbeat to keep connection alive
-        const heartbeat = setInterval(async () => {
-          try {
-            await writer.write(encoder.encode(`data: {"type":"heartbeat","timestamp":${Date.now()}}\n\n`));
-          } catch (error) {
-            clearInterval(heartbeat);
-          }
-        }, 30000); // Send heartbeat every 30 seconds
-
-        // Handle connection close
-        request.signal?.addEventListener('abort', () => {
-          clearInterval(heartbeat);
-          writer.close();
+    // For regular SSE requests, create a simple stream
+    const stream = new ReadableStream({
+      start(controller) {
+        // Send immediate response for MCP handshake
+        const message = JSON.stringify({
+          jsonrpc: '2.0',
+          method: 'notifications/initialized',
+          params: {}
         });
-      } catch (error) {
-        console.error('SSE stream error:', error);
-        writer.close();
+        controller.enqueue(new TextEncoder().encode(`data: ${message}\n\n`));
       }
-    };
+    });
 
-    sendData();
-
-    return new Response(readable, {
+    return new Response(stream, {
       headers: {
         'Content-Type': 'text/event-stream',
         'Cache-Control': 'no-cache',
         'Connection': 'keep-alive',
         'Access-Control-Allow-Origin': '*',
-        'Access-Control-Allow-Headers': 'Cache-Control',
+        'Access-Control-Allow-Headers': '*',
       },
     });
   }
