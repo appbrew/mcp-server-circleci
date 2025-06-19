@@ -45,12 +45,33 @@ export default {
       return mcpInstance.fetch(request);
     }
 
-    // Default response
+    // Handle OAuth discovery endpoint
+    if (url.pathname === '/.well-known/oauth-authorization-server') {
+      const baseUrl = new URL(request.url).origin;
+      return new Response(JSON.stringify({
+        issuer: baseUrl,
+        authorization_endpoint: env.ACCESS_AUTHORIZATION_URL || `${baseUrl}/authorize`,
+        token_endpoint: env.ACCESS_TOKEN_URL || `${baseUrl}/token`,
+        response_types_supported: ['code'],
+        grant_types_supported: ['authorization_code'],
+        code_challenge_methods_supported: ['S256'],
+        scopes_supported: ['read']
+      }), {
+        headers: { 'Content-Type': 'application/json' },
+      });
+    }
+
+    // Default response with OAuth configuration
+    const baseUrl = new URL(request.url).origin;
     return new Response(JSON.stringify({ 
       name: 'CircleCI MCP Server', 
       version: '0.10.1',
       status: 'running',
-      oauth: 'enabled' 
+      oauth: 'enabled',
+      issuer: baseUrl,
+      authorization_endpoint: env.ACCESS_AUTHORIZATION_URL || `${baseUrl}/authorize`,
+      token_endpoint: env.ACCESS_TOKEN_URL || `${baseUrl}/token`,
+      response_types_supported: ['code']
     }), {
       headers: { 'Content-Type': 'application/json' },
     });
