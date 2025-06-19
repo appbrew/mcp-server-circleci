@@ -99,14 +99,28 @@ async function handleConsentRequest(request: Request, env: Env): Promise<Respons
   const scope = formData.get('scope') as string;
   const action = formData.get('action') as string;
 
+  if (!clientId || !redirectUri || !action) {
+    return new Response('Missing required parameters', { status: 400 });
+  }
+
   if (action !== 'allow') {
-    const redirectUrl = new URL(redirectUri);
-    redirectUrl.searchParams.set('error', 'access_denied');
-    if (state) redirectUrl.searchParams.set('state', state);
-    return Response.redirect(redirectUrl.toString(), 302);
+    try {
+      const redirectUrl = new URL(redirectUri);
+      redirectUrl.searchParams.set('error', 'access_denied');
+      if (state) redirectUrl.searchParams.set('state', state);
+      return Response.redirect(redirectUrl.toString(), 302);
+    } catch (error) {
+      console.error('Invalid redirect_uri:', redirectUri, error);
+      return new Response('Invalid redirect_uri', { status: 400 });
+    }
   }
 
   // Redirect to Cloudflare Access for authentication
+  if (!env.ACCESS_AUTHORIZATION_URL || !env.ACCESS_CLIENT_ID || !env.COOKIE_ENCRYPTION_KEY) {
+    console.error('Missing required environment variables');
+    return new Response('Server configuration error', { status: 500 });
+  }
+
   const accessUrl = new URL(env.ACCESS_AUTHORIZATION_URL);
   accessUrl.searchParams.set('client_id', env.ACCESS_CLIENT_ID);
   accessUrl.searchParams.set('response_type', 'code');
