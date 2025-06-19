@@ -1,4 +1,5 @@
 import { ConfigValidateAPI } from './configValidate.js';
+import { getEnvironment } from '../../lib/environment.js';
 import { HTTPClient } from './httpClient.js';
 import { InsightsAPI } from './insights.js';
 import { JobsAPI } from './jobs.js';
@@ -10,7 +11,7 @@ import { WorkflowsAPI } from './workflows.js';
 export type TCircleCIClient = InstanceType<typeof CircleCIClients>;
 
 export const getBaseURL = (useAPISubdomain = false) => {
-  let baseURL = process.env.CIRCLECI_BASE_URL || 'https://circleci.com';
+  let baseURL = getEnvironment().CIRCLECI_BASE_URL || 'https://circleci.com';
 
   if (useAPISubdomain) {
     baseURL = baseURL.replace('https://', 'https://api.');
@@ -20,7 +21,7 @@ export const getBaseURL = (useAPISubdomain = false) => {
 };
 
 export const getAppURL = () => {
-  const baseURL = process.env.CIRCLECI_BASE_URL || 'https://circleci.com';
+  const baseURL = getEnvironment().CIRCLECI_BASE_URL || 'https://circleci.com';
 
   return baseURL.replace('https://', 'https://app.');
 };

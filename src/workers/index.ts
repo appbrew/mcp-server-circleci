@@ -2,6 +2,7 @@ import { McpAgent } from 'agents/mcp';
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { CCI_HANDLERS, CCI_TOOLS, type ToolHandler } from '../circleci-tools.js';
 import { handleOAuthRequest } from './oauth-handler';
+import { setEnvironment } from '../lib/environment.js';
 
 interface Env {
   // OAuth configuration
@@ -46,6 +47,12 @@ export class CircleCIMCP extends McpAgent {
 
 export default {
   async fetch(request: Request, env: Env, ctx: ExecutionContext): Promise<Response> {
+    // Set environment context for handlers
+    setEnvironment({
+      CIRCLECI_TOKEN: env.CIRCLECI_TOKEN,
+      CIRCLECI_BASE_URL: env.CIRCLECI_BASE_URL,
+    });
+
     const url = new URL(request.url);
 
     // Handle OAuth-related requests
