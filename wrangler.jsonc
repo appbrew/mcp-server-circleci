@@ -21,6 +21,14 @@
       }
     ]
   },
+  "migrations": [
+    {
+      "tag": "v1",
+      "new_sqlite_classes": [
+        "MCP_OBJECT"
+      ]
+    }
+  ],
   "observability": {
     "enabled": true
   },
