@@ -101,7 +101,7 @@ Cloudflare Workersにサーバーをデプロイした後、リモートURLを�
       "command": "npx",
       "args": ["-y", "@modelcontextprotocol/remote"],
       "env": {
-        "MCP_REMOTE_URL": "https://your-worker.your-subdomain.workers.dev/sse"
+        "MCP_REMOTE_URL": "https://mcp-circleci.appbrew.workers.dev/sse"
       }
     }
   }
@@ -114,7 +114,7 @@ Cloudflare Workersにサーバーをデプロイした後、リモートURLを�
   "servers": {
     "circleci-remote": {
       "type": "remote",
-      "url": "https://your-worker.your-subdomain.workers.dev/sse"
+      "url": "https://mcp-circleci.appbrew.workers.dev/sse"
     }
   }
 }
@@ -122,11 +122,11 @@ Cloudflare Workersにサーバーをデプロイした後、リモートURLを�
 
 **MCP Inspector:**
 ```bash
-npx @modelcontextprotocol/inspector remote https://your-worker.your-subdomain.workers.dev/sse
+npx @modelcontextprotocol/inspector remote https://mcp-circleci.appbrew.workers.dev/sse
 ```
 
 **その他のMCPクライアント:**
-リモートサーバーをサポートする任意のMCPクライアントで、リモートURL `https://your-worker.your-subdomain.workers.dev/sse` を使用してください。
+リモートサーバーをサポートする任意のMCPクライアントで、リモートURL `https://mcp-circleci.appbrew.workers.dev/sse` を使用してください。
 
 # 機能
 
