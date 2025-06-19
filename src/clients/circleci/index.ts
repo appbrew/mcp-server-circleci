@@ -11,7 +11,7 @@ import { WorkflowsAPI } from './workflows.js';
 export type TCircleCIClient = InstanceType<typeof CircleCIClients>;
 
 export const getBaseURL = (useAPISubdomain = false) => {
-  let baseURL = getEnvironment().CIRCLECI_BASE_URL || 'https://circleci.com';
+  let baseURL = 'https://circleci.com';
 
   if (useAPISubdomain) {
     baseURL = baseURL.replace('https://', 'https://api.');
@@ -21,7 +21,7 @@ export const getBaseURL = (useAPISubdomain = false) => {
 };
 
 export const getAppURL = () => {
-  const baseURL = getEnvironment().CIRCLECI_BASE_URL || 'https://circleci.com';
+  const baseURL = 'https://circleci.com';
 
   return baseURL.replace('https://', 'https://app.');
 };

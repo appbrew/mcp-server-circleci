@@ -6,9 +6,16 @@ import { fileURLToPath } from 'node:url';
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
 import { CCI_HANDLERS, CCI_TOOLS, type ToolHandler } from './circleci-tools.js';
+import { setEnvironment } from './lib/environment.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const packageJson = JSON.parse(fs.readFileSync(path.join(__dirname, '../package.json'), 'utf8'));
+
+// Initialize environment from process.env
+setEnvironment({
+  CIRCLECI_TOKEN: process.env.CIRCLECI_TOKEN || '',
+  CIRCLECI_BASE_URL: process.env.CIRCLECI_BASE_URL,
+});
 
 const server = new McpServer(
   {

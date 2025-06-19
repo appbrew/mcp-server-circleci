@@ -27,6 +27,16 @@ export class CircleCIMCP extends McpAgent {
     version: '0.10.1',
   }) as any;
 
+  constructor(ctx: DurableObjectState, env: Env) {
+    super(ctx, env);
+    
+    // Set environment variables when the Durable Object is created
+    setEnvironment({
+      CIRCLECI_TOKEN: env.CIRCLECI_TOKEN,
+      CIRCLECI_BASE_URL: env.CIRCLECI_BASE_URL,
+    });
+  }
+
   async init() {
     // Register all CircleCI tools
     CCI_TOOLS.forEach((tool) => {
@@ -47,12 +57,6 @@ export class CircleCIMCP extends McpAgent {
 
 export default {
   async fetch(request: Request, env: Env, ctx: ExecutionContext): Promise<Response> {
-    // Set environment context for handlers
-    setEnvironment({
-      CIRCLECI_TOKEN: env.CIRCLECI_TOKEN,
-      CIRCLECI_BASE_URL: env.CIRCLECI_BASE_URL,
-    });
-
     const url = new URL(request.url);
 
     // Handle OAuth-related requests
