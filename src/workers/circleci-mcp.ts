@@ -39,17 +39,28 @@ export class CircleCIMCP {
       });
     }
 
-    // For non-WebSocket requests, return server info
-    return new Response(JSON.stringify({
+    // For SSE requests, return proper event stream
+    const { readable, writable } = new TransformStream();
+    const writer = writable.getWriter();
+    const encoder = new TextEncoder();
+
+    // Send initial server info as SSE event
+    const serverInfo = {
       name: 'mcp-server-circleci',
       version: '0.10.1',
       capabilities: {
         tools: {},
         resources: {},
       }
-    }), {
-      headers: { 
-        'Content-Type': 'application/json',
+    };
+
+    writer.write(encoder.encode(`data: ${JSON.stringify(serverInfo)}\n\n`));
+
+    return new Response(readable, {
+      headers: {
+        'Content-Type': 'text/event-stream',
+        'Cache-Control': 'no-cache',
+        'Connection': 'keep-alive',
         'Access-Control-Allow-Origin': '*',
         'Access-Control-Allow-Headers': 'Cache-Control',
       },
