@@ -13,6 +13,14 @@
       "preview_id": "dd6f3fd861b84ed39a5672609b3ca340"
     }
   ],
+  "durable_objects": {
+    "bindings": [
+      {
+        "name": "MCP_OBJECT",
+        "class_name": "CircleCIMCP"
+      }
+    ]
+  },
   "observability": {
     "enabled": true
   },

@@ -34,7 +34,7 @@ export class CircleCIMCP extends McpAgent {
         throw new Error(`Handler for tool ${tool.name} not found`);
       }
 
-      this.server.tool(tool.name, tool.description, tool.inputSchema as any, handler as any);
+      this.server.tool(tool.name, tool.description, tool.inputSchema, handler);
     });
   }
 }
