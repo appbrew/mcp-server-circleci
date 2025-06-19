@@ -166,12 +166,25 @@ async function handleTokenRequest(request: Request, env: Env): Promise<Response>
     });
   }
 
-  // Verify client credentials (basic validation)
-  if (clientSecret && clientSecret !== 'valid-secret') {
-    return new Response(JSON.stringify({ error: 'invalid_client' }), {
-      status: 401,
-      headers: { 'Content-Type': 'application/json' },
-    });
+  // Verify client credentials if client_secret is provided
+  if (clientSecret) {
+    const clientKey = `client:${clientId}`;
+    const clientData = await env.MCP_OAUTH_DATA.get(clientKey);
+    
+    if (!clientData) {
+      return new Response(JSON.stringify({ error: 'invalid_client' }), {
+        status: 401,
+        headers: { 'Content-Type': 'application/json' },
+      });
+    }
+    
+    const parsedClientData = JSON.parse(clientData);
+    if (parsedClientData.client_secret !== clientSecret) {
+      return new Response(JSON.stringify({ error: 'invalid_client' }), {
+        status: 401,
+        headers: { 'Content-Type': 'application/json' },
+      });
+    }
   }
 
   // Verify authorization code
