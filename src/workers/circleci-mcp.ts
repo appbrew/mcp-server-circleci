@@ -23,42 +23,21 @@ export class CircleCIMCP {
       this.server = this.createServer();
     }
 
-    // Handle WebSocket upgrade for MCP Inspector
-    const upgradeHeader = request.headers.get('Upgrade');
-    if (upgradeHeader === 'websocket') {
-      const webSocketPair = new WebSocketPair();
-      const client = webSocketPair[0];
-      const serverSocket = webSocketPair[1];
+    // Always try to upgrade to WebSocket for MCP
+    const webSocketPair = new WebSocketPair();
+    const client = webSocketPair[0];
+    const serverSocket = webSocketPair[1];
 
-      serverSocket.accept();
-      this.handleWebSocket(serverSocket);
+    serverSocket.accept();
+    this.handleWebSocket(serverSocket);
 
-      return new Response(null, {
-        status: 101,
-        webSocket: client,
-      });
-    }
-
-    // For regular SSE requests, create a simple stream
-    const stream = new ReadableStream({
-      start(controller) {
-        // Send immediate response for MCP handshake
-        const message = JSON.stringify({
-          jsonrpc: '2.0',
-          method: 'notifications/initialized',
-          params: {}
-        });
-        controller.enqueue(new TextEncoder().encode(`data: ${message}\n\n`));
-      }
-    });
-
-    return new Response(stream, {
+    return new Response(null, {
+      status: 101,
+      webSocket: client,
       headers: {
-        'Content-Type': 'text/event-stream',
-        'Cache-Control': 'no-cache',
-        'Connection': 'keep-alive',
-        'Access-Control-Allow-Origin': '*',
-        'Access-Control-Allow-Headers': '*',
+        'Upgrade': 'websocket',
+        'Connection': 'Upgrade',
+        'Sec-WebSocket-Accept': '',
       },
     });
   }
