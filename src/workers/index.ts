@@ -46,8 +46,13 @@ export default {
     }
 
     // Default response
-    return new Response('CircleCI MCP Server with OAuth', {
-      headers: { 'Content-Type': 'text/plain' },
+    return new Response(JSON.stringify({ 
+      name: 'CircleCI MCP Server', 
+      version: '0.10.1',
+      status: 'running',
+      oauth: 'enabled' 
+    }), {
+      headers: { 'Content-Type': 'application/json' },
     });
   },
 };
