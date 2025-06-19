@@ -50,9 +50,9 @@ export default {
     if (url.pathname === '/.well-known/oauth-authorization-server') {
       const baseUrl = new URL(request.url).origin;
       return new Response(JSON.stringify({
-        issuer: env.ACCESS_JWKS_URL ? env.ACCESS_JWKS_URL.replace('/certs', '') : baseUrl,
-        authorization_endpoint: env.ACCESS_AUTHORIZATION_URL || `${baseUrl}/authorize`,
-        token_endpoint: env.ACCESS_TOKEN_URL || `${baseUrl}/token`,
+        issuer: baseUrl,
+        authorization_endpoint: `${baseUrl}/authorize`,
+        token_endpoint: `${baseUrl}/token`,
         jwks_uri: env.ACCESS_JWKS_URL || `${baseUrl}/.well-known/jwks.json`,
         registration_endpoint: `${baseUrl}/register`,
         response_types_supported: ['code'],
@@ -73,8 +73,8 @@ export default {
       status: 'running',
       oauth: 'enabled',
       issuer: baseUrl,
-      authorization_endpoint: env.ACCESS_AUTHORIZATION_URL || `${baseUrl}/authorize`,
-      token_endpoint: env.ACCESS_TOKEN_URL || `${baseUrl}/token`,
+      authorization_endpoint: `${baseUrl}/authorize`,
+      token_endpoint: `${baseUrl}/token`,
       response_types_supported: ['code']
     }), {
       headers: { 'Content-Type': 'application/json' },
