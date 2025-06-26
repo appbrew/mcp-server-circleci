@@ -300,6 +300,8 @@ async function handleCallbackRequest(request: Request, env: Env): Promise<Respon
       },
     });
 
+    console.log('userInfoResponse', userInfoResponse);
+
     if (!userInfoResponse.ok) {
       console.error('User info fetch failed');
       return new Response('User verification failed', { status: 500 });
