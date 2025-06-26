@@ -313,7 +313,7 @@ async function handleCallbackRequest(request: Request, env: Env): Promise<Respon
     };
 
     if (!userInfo.sub) {
-      console.error('No user ID in user info response', JSON.stringify(userInfoResponse));
+      console.error('No user ID in user info response', JSON.stringify(userInfo));
       return new Response('User ID not found', { status: 500 });
     }
 
