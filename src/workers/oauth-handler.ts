@@ -48,9 +48,9 @@ async function handleAuthorizeRequest(request: Request, env: Env): Promise<Respo
     return new Response('Invalid request parameters', { status: 400 });
   }
 
-  // Check if client is already authorized
-  const authKey = `auth:${clientId}`;
-  const existingAuth = await env.MCP_OAUTH_DATA.get(authKey);
+  // Note: We can't check for existing auth here without user ID
+  // Each user needs to go through the full OAuth flow
+  const existingAuth = null;
 
   if (existingAuth) {
     // Generate authorization code
@@ -215,6 +215,7 @@ async function handleTokenRequest(request: Request, env: Env): Promise<Response>
     JSON.stringify({
       clientId: parsedCodeData.clientId,
       scope: parsedCodeData.scope,
+      userId: parsedCodeData.userId,
       issuedAt: Date.now(),
       expiresAt: Date.now() + 60 * 60 * 1000, // 1 hour
     }),
@@ -330,13 +331,28 @@ async function handleCallbackRequest(request: Request, env: Env): Promise<Respon
       return new Response('User verification failed', { status: 500 });
     }
 
-    // Mark client as authorized
-    const authKey = `auth:${oauthState.clientId}`;
+    // Get user information
+    const userInfo = await userInfoResponse.json() as { 
+      sub: string; 
+      email?: string; 
+      name?: string; 
+    };
+    
+    if (!userInfo.sub) {
+      console.error('No user ID in user info response');
+      return new Response('User ID not found', { status: 500 });
+    }
+
+    // Mark client as authorized with user ID
+    const authKey = `auth:${oauthState.clientId}:${userInfo.sub}`;
     await env.MCP_OAUTH_DATA.put(
       authKey,
       JSON.stringify({
         authorizedAt: Date.now(),
         scope: oauthState.scope,
+        userId: userInfo.sub,
+        userEmail: userInfo.email,
+        userName: userInfo.name,
       }),
       { expirationTtl: 86400 * 30 } // 30 days
     );
@@ -350,6 +366,7 @@ async function handleCallbackRequest(request: Request, env: Env): Promise<Respon
         clientId: oauthState.clientId,
         redirectUri: oauthState.redirectUri,
         scope: oauthState.scope,
+        userId: userInfo.sub,
         expiresAt: Date.now() + 10 * 60 * 1000, // 10 minutes
       }),
       { expirationTtl: 600 }

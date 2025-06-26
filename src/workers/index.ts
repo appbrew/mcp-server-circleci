@@ -2,7 +2,8 @@ import { McpAgent } from 'agents/mcp';
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { CCI_HANDLERS, CCI_TOOLS, type ToolHandler } from '../circleci-tools.js';
 import { handleOAuthRequest } from './oauth-handler';
-import { setEnvironment } from '../lib/environment.js';
+import { setEnvironment, setUserEnvironment, type UserContext } from '../lib/environment.js';
+import { validateToken, extractBearerToken } from '../lib/oauth-validation.js';
 
 interface Env {
   // OAuth configuration
@@ -27,14 +28,45 @@ export class CircleCIMCP extends McpAgent {
     version: '0.10.1',
   }) as any;
 
+  private env: Env;
+
   constructor(ctx: DurableObjectState, env: Env) {
     super(ctx, env);
+    this.env = env;
     
-    // Set environment variables when the Durable Object is created
+    // Set global environment variables for backward compatibility
     setEnvironment({
       CIRCLECI_TOKEN: env.CIRCLECI_TOKEN,
       CIRCLECI_BASE_URL: env.CIRCLECI_BASE_URL,
     });
+  }
+
+  private async validateAndSetUserContext(request: Request): Promise<UserContext | null> {
+    const authHeader = request.headers.get('Authorization');
+    const token = extractBearerToken(authHeader);
+    
+    if (!token) {
+      return null;
+    }
+    
+    const tokenData = await validateToken(token, this.env.MCP_OAUTH_DATA);
+    
+    if (!tokenData) {
+      return null;
+    }
+    
+    const userContext: UserContext = {
+      userId: tokenData.userId,
+      clientId: tokenData.clientId,
+    };
+    
+    // Set user-specific environment
+    setUserEnvironment(userContext, {
+      CIRCLECI_TOKEN: this.env.CIRCLECI_TOKEN,
+      CIRCLECI_BASE_URL: this.env.CIRCLECI_BASE_URL,
+    });
+    
+    return userContext;
   }
 
   async init() {
