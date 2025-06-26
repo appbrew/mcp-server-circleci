@@ -294,7 +294,7 @@ async function handleCallbackRequest(request: Request, env: Env): Promise<Respon
     const tokenData = (await tokenResponse.json()) as { access_token: string; token_type: string };
 
     // Verify the access token by fetching user info (optional validation)
-    const userInfoResponse = await fetch(`${env.ACCESS_JWKS_URL.replace('/certs', '/userinfo')}`, {
+    const userInfoResponse = await fetch(`${env.ACCESS_JWKS_URL.replace('/jwks', '/userinfo')}`, {
       headers: {
         Authorization: `Bearer ${tokenData.access_token}`,
       },
