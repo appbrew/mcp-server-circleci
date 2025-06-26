@@ -28,45 +28,14 @@ export class CircleCIMCP extends McpAgent {
     version: '0.10.1',
   }) as any;
 
-  private env: Env;
-
   constructor(ctx: DurableObjectState, env: Env) {
     super(ctx, env);
-    this.env = env;
-    
+
     // Set global environment variables for backward compatibility
     setEnvironment({
       CIRCLECI_TOKEN: env.CIRCLECI_TOKEN,
       CIRCLECI_BASE_URL: env.CIRCLECI_BASE_URL,
     });
-  }
-
-  private async validateAndSetUserContext(request: Request): Promise<UserContext | null> {
-    const authHeader = request.headers.get('Authorization');
-    const token = extractBearerToken(authHeader);
-    
-    if (!token) {
-      return null;
-    }
-    
-    const tokenData = await validateToken(token, this.env.MCP_OAUTH_DATA);
-    
-    if (!tokenData) {
-      return null;
-    }
-    
-    const userContext: UserContext = {
-      userId: tokenData.userId,
-      clientId: tokenData.clientId,
-    };
-    
-    // Set user-specific environment
-    setUserEnvironment(userContext, {
-      CIRCLECI_TOKEN: this.env.CIRCLECI_TOKEN,
-      CIRCLECI_BASE_URL: this.env.CIRCLECI_BASE_URL,
-    });
-    
-    return userContext;
   }
 
   async init() {

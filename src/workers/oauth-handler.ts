@@ -48,32 +48,6 @@ async function handleAuthorizeRequest(request: Request, env: Env): Promise<Respo
     return new Response('Invalid request parameters', { status: 400 });
   }
 
-  // Note: We can't check for existing auth here without user ID
-  // Each user needs to go through the full OAuth flow
-  const existingAuth = null;
-
-  if (existingAuth) {
-    // Generate authorization code
-    const code = crypto.randomUUID();
-    const codeKey = `code:${code}`;
-    await env.MCP_OAUTH_DATA.put(
-      codeKey,
-      JSON.stringify({
-        clientId,
-        redirectUri,
-        scope,
-        expiresAt: Date.now() + 10 * 60 * 1000, // 10 minutes
-      }),
-      { expirationTtl: 600 }
-    );
-
-    const redirectUrl = new URL(redirectUri);
-    redirectUrl.searchParams.set('code', code);
-    if (state) redirectUrl.searchParams.set('state', state);
-
-    return Response.redirect(redirectUrl.toString(), 302);
-  }
-
   // Show consent form
   const consentForm = generateConsentForm({
     clientId,
@@ -170,14 +144,14 @@ async function handleTokenRequest(request: Request, env: Env): Promise<Response>
   if (clientSecret) {
     const clientKey = `client:${clientId}`;
     const clientData = await env.MCP_OAUTH_DATA.get(clientKey);
-    
+
     if (!clientData) {
       return new Response(JSON.stringify({ error: 'invalid_client' }), {
         status: 401,
         headers: { 'Content-Type': 'application/json' },
       });
     }
-    
+
     const parsedClientData = JSON.parse(clientData);
     if (parsedClientData.client_secret !== clientSecret) {
       return new Response(JSON.stringify({ error: 'invalid_client' }), {
@@ -260,7 +234,7 @@ async function handleCallbackRequest(request: Request, env: Env): Promise<Respon
   }
 
   const cookies = Object.fromEntries(
-    cookieHeader.split('; ').map(cookie => {
+    cookieHeader.split('; ').map((cookie) => {
       const [name, value] = cookie.split('=');
       return [name, value];
     })
@@ -317,12 +291,12 @@ async function handleCallbackRequest(request: Request, env: Env): Promise<Respon
       return new Response('Token exchange failed', { status: 500 });
     }
 
-    const tokenData = await tokenResponse.json() as { access_token: string; token_type: string };
-    
+    const tokenData = (await tokenResponse.json()) as { access_token: string; token_type: string };
+
     // Verify the access token by fetching user info (optional validation)
     const userInfoResponse = await fetch(`${env.ACCESS_JWKS_URL.replace('/certs', '/userinfo')}`, {
       headers: {
-        'Authorization': `Bearer ${tokenData.access_token}`,
+        Authorization: `Bearer ${tokenData.access_token}`,
       },
     });
 
@@ -332,12 +306,12 @@ async function handleCallbackRequest(request: Request, env: Env): Promise<Respon
     }
 
     // Get user information
-    const userInfo = await userInfoResponse.json() as { 
-      sub: string; 
-      email?: string; 
-      name?: string; 
+    const userInfo = (await userInfoResponse.json()) as {
+      sub: string;
+      email?: string;
+      name?: string;
     };
-    
+
     if (!userInfo.sub) {
       console.error('No user ID in user info response');
       return new Response('User ID not found', { status: 500 });
@@ -386,7 +360,6 @@ async function handleCallbackRequest(request: Request, env: Env): Promise<Respon
         'Set-Cookie': 'oauth_state=; HttpOnly; Secure; SameSite=Lax; Max-Age=0', // Clear the cookie
       },
     });
-
   } catch (error) {
     console.error('OAuth callback error:', error);
     return new Response('Authentication failed', { status: 500 });
@@ -399,7 +372,7 @@ async function handleRegistrationRequest(request: Request, env: Env): Promise<Re
   }
 
   try {
-    const body = await request.json() as {
+    const body = (await request.json()) as {
       redirect_uris?: string[];
       token_endpoint_auth_method?: string;
       grant_types?: string[];
@@ -427,35 +400,40 @@ async function handleRegistrationRequest(request: Request, env: Env): Promise<Re
         client_name: body.client_name || 'MCP Client',
         client_uri: body.client_uri,
         scope: body.scope || 'read',
-        created_at: Date.now()
+        created_at: Date.now(),
       }),
       { expirationTtl: 86400 * 365 } // 1 year
     );
 
-    return new Response(JSON.stringify({
-      client_id: clientId,
-      client_secret: clientSecret,
-      client_id_issued_at: Math.floor(Date.now() / 1000),
-      client_secret_expires_at: 0, // Never expires
-      redirect_uris: body.redirect_uris || [],
-      token_endpoint_auth_method: body.token_endpoint_auth_method || 'client_secret_post',
-      grant_types: body.grant_types || ['authorization_code'],
-      response_types: body.response_types || ['code'],
-      client_name: body.client_name || 'MCP Client',
-      client_uri: body.client_uri,
-      scope: body.scope || 'read'
-    }), {
-      status: 201,
-      headers: { 'Content-Type': 'application/json' },
-    });
-
+    return new Response(
+      JSON.stringify({
+        client_id: clientId,
+        client_secret: clientSecret,
+        client_id_issued_at: Math.floor(Date.now() / 1000),
+        client_secret_expires_at: 0, // Never expires
+        redirect_uris: body.redirect_uris || [],
+        token_endpoint_auth_method: body.token_endpoint_auth_method || 'client_secret_post',
+        grant_types: body.grant_types || ['authorization_code'],
+        response_types: body.response_types || ['code'],
+        client_name: body.client_name || 'MCP Client',
+        client_uri: body.client_uri,
+        scope: body.scope || 'read',
+      }),
+      {
+        status: 201,
+        headers: { 'Content-Type': 'application/json' },
+      }
+    );
   } catch (error) {
-    return new Response(JSON.stringify({
-      error: 'invalid_request',
-      error_description: 'Invalid registration request'
-    }), {
-      status: 400,
-      headers: { 'Content-Type': 'application/json' },
-    });
+    return new Response(
+      JSON.stringify({
+        error: 'invalid_request',
+        error_description: 'Invalid registration request',
+      }),
+      {
+        status: 400,
+        headers: { 'Content-Type': 'application/json' },
+      }
+    );
   }
 }
