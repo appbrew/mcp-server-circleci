@@ -300,8 +300,6 @@ async function handleCallbackRequest(request: Request, env: Env): Promise<Respon
       },
     });
 
-    console.error('userInfoResponse', userInfoResponse);
-
     if (!userInfoResponse.ok) {
       console.error('User info fetch failed');
       return new Response('User verification failed', { status: 500 });
@@ -316,7 +314,7 @@ async function handleCallbackRequest(request: Request, env: Env): Promise<Respon
 
     if (!userInfo.sub) {
       console.error('No user ID in user info response');
-      return new Response('User ID not found', { status: 500 });
+      return new Response(JSON.stringify(userInfoResponse), { status: 500 });
     }
 
     // Mark client as authorized with user ID
