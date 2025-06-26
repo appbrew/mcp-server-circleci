@@ -2,7 +2,7 @@ import { McpAgent } from 'agents/mcp';
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { CCI_HANDLERS, CCI_TOOLS, type ToolHandler } from '../circleci-tools.js';
 import { handleOAuthRequest } from './oauth-handler';
-import { setEnvironment, setUserEnvironment, type UserContext } from '../lib/environment.js';
+import { setEnvironment } from '../lib/environment.js';
 import { validateToken, extractBearerToken } from '../lib/oauth-validation.js';
 
 interface Env {
@@ -28,8 +28,11 @@ export class CircleCIMCP extends McpAgent {
     version: '0.10.1',
   }) as any;
 
+  env: Env;
+
   constructor(ctx: DurableObjectState, env: Env) {
     super(ctx, env);
+    this.env = env;
 
     // Set global environment variables for backward compatibility
     setEnvironment({
@@ -38,21 +41,60 @@ export class CircleCIMCP extends McpAgent {
     });
   }
 
+  private async authenticateRequest(request: Request): Promise<void> {
+    const authHeader = request.headers.get('Authorization');
+    const token = extractBearerToken(authHeader);
+
+    if (!token) {
+      throw new Error('Authorization header with Bearer token is required');
+    }
+
+    const tokenData = await validateToken(token, this.env.MCP_OAUTH_DATA);
+    if (!tokenData) {
+      throw new Error('Invalid or expired token');
+    }
+  }
+
   async init() {
-    // Register all CircleCI tools
+    // Register all CircleCI tools with authentication wrapper
     CCI_TOOLS.forEach((tool) => {
       const handler = CCI_HANDLERS[tool.name];
       if (!handler) {
         throw new Error(`Handler for tool ${tool.name} not found`);
       }
 
+      // Wrap handler with authentication check
+      const authenticatedHandler = async (args: any, context: any) => {
+        // Extract request from context if available
+        const request = context?.request || context?.meta?.request;
+        if (request) {
+          await this.authenticateRequest(request);
+        }
+        return handler(args, context);
+      };
+
       this.server.tool(
         tool.name,
         tool.description,
         { params: tool.inputSchema },
-        handler as ToolHandler<typeof tool.name>
+        authenticatedHandler as ToolHandler<typeof tool.name>
       );
     });
+  }
+}
+
+// Helper function for authentication check
+async function authenticateRequest(request: Request, env: Env): Promise<void> {
+  const authHeader = request.headers.get('Authorization');
+  const token = extractBearerToken(authHeader);
+
+  if (!token) {
+    throw new Error('Authorization header with Bearer token is required');
+  }
+
+  const tokenData = await validateToken(token, env.MCP_OAUTH_DATA);
+  if (!tokenData) {
+    throw new Error('Invalid or expired token');
   }
 }
 
@@ -70,13 +112,15 @@ export default {
       return handleOAuthRequest(request, env);
     }
 
-    // Handle MCP SSE endpoint
+    // Handle MCP SSE endpoint with authentication
     if (url.pathname === '/sse' || url.pathname === '/sse/message') {
+      await authenticateRequest(request, env);
       return CircleCIMCP.serveSSE('/sse').fetch(request, env, ctx);
     }
 
-    // Handle MCP endpoint
+    // Handle MCP endpoint with authentication
     if (url.pathname === '/mcp') {
+      await authenticateRequest(request, env);
       return CircleCIMCP.serve('/mcp').fetch(request, env, ctx);
     }
 
